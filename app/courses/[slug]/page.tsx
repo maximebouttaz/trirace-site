@@ -143,9 +143,9 @@ export default async function RaceDetailPage({
       {/* BREADCRUMB */}
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-3">
         <nav aria-label="Fil d'ariane" className="flex items-center gap-1.5 text-xs text-zinc-500">
-          <Link href="/" className="hover:text-zinc-300 transition">Accueil</Link>
+          <Link href="/" className="hover:text-zinc-700 transition">Accueil</Link>
           <ChevronRight size={12} aria-hidden="true" />
-          <Link href="/courses" className="hover:text-zinc-300 transition">Courses</Link>
+          <Link href="/courses" className="hover:text-zinc-700 transition">Courses</Link>
           <ChevronRight size={12} aria-hidden="true" />
           <span className="text-zinc-400 truncate max-w-xs">{r.name}</span>
         </nav>
@@ -154,7 +154,7 @@ export default async function RaceDetailPage({
       {/* HERO */}
       <div className={`h-64 md:h-80 ${r.image_gradient || 'bg-gradient-to-br from-zinc-600 to-zinc-800'} relative`}>
         <div className="absolute inset-0 bg-black/30" />
-        <div className="absolute bottom-0 w-full p-6 md:p-10 bg-gradient-to-t from-zinc-950/90 to-transparent">
+        <div className="absolute bottom-0 w-full p-6 md:p-10 bg-gradient-to-t from-black/70 to-transparent">
           <div className="max-w-7xl mx-auto">
             <span className={`${categoryColor(r.category)} px-3 py-1 rounded text-xs font-bold uppercase tracking-wider mb-2 inline-block`}>
               {categoryLabel(r.category)}
@@ -190,30 +190,30 @@ export default async function RaceDetailPage({
         {/* Distances KPI */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {r.swim_distance && (
-            <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 text-center">
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 text-center">
               <Waves size={20} className="mx-auto text-cyan-500 mb-2" />
-              <p className="text-2xl font-mono font-bold text-white">{formatDistance(r.swim_distance)}</p>
+              <p className="text-2xl font-mono font-bold text-zinc-900">{formatDistance(r.swim_distance)}</p>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">Natation</p>
             </div>
           )}
           {r.bike_distance && (
-            <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 text-center">
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 text-center">
               <Bike size={20} className="mx-auto text-red-500 mb-2" />
-              <p className="text-2xl font-mono font-bold text-white">{formatDistance(r.bike_distance)}</p>
+              <p className="text-2xl font-mono font-bold text-zinc-900">{formatDistance(r.bike_distance)}</p>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">Vélo</p>
             </div>
           )}
           {r.run_distance && (
-            <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 text-center">
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 text-center">
               <Activity size={20} className="mx-auto text-amber-500 mb-2" />
-              <p className="text-2xl font-mono font-bold text-white">{formatDistance(r.run_distance)}</p>
+              <p className="text-2xl font-mono font-bold text-zinc-900">{formatDistance(r.run_distance)}</p>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">Course</p>
             </div>
           )}
           {r.total_elevation != null && r.total_elevation > 0 && (
-            <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 text-center">
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 text-center">
               <Mountain size={20} className="mx-auto text-purple-500 mb-2" />
-              <p className="text-2xl font-mono font-bold text-white">{r.total_elevation}m</p>
+              <p className="text-2xl font-mono font-bold text-zinc-900">{r.total_elevation}m</p>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">Dénivelé D+</p>
             </div>
           )}
@@ -225,8 +225,8 @@ export default async function RaceDetailPage({
 
             {/* Bike profile */}
             {r.bike_elevation && r.bike_elevation > 0 && (
-              <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+              <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
+                <h3 className="font-bold text-zinc-900 mb-4 flex items-center gap-2">
                   <Mountain size={18} /> Profil Vélo ({r.bike_elevation}m D+)
                 </h3>
                 <div className="h-40 w-full relative">
@@ -250,8 +250,8 @@ export default async function RaceDetailPage({
 
             {/* Description */}
             {r.description && (
-              <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
-                <h2 className="font-bold text-white mb-3">Description</h2>
+              <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
+                <h2 className="font-bold text-zinc-900 mb-3">Description</h2>
                 {r.tagline && (
                   <p className="text-sm font-bold italic text-zinc-400 mb-3">&ldquo;{r.tagline}&rdquo;</p>
                 )}
@@ -261,21 +261,21 @@ export default async function RaceDetailPage({
 
             {/* Records */}
             {(r.record_men || r.record_women) && (
-              <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+              <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
+                <h3 className="font-bold text-zinc-900 mb-4 flex items-center gap-2">
                   <Trophy size={18} className="text-amber-500" /> Records
                 </h3>
                 <div className="space-y-3">
                   {r.record_men && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-500 font-bold">Hommes</span>
-                      <span className="text-sm font-mono font-bold text-white">{r.record_men}</span>
+                      <span className="text-sm font-mono font-bold text-zinc-900">{r.record_men}</span>
                     </div>
                   )}
                   {r.record_women && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-500 font-bold">Femmes</span>
-                      <span className="text-sm font-mono font-bold text-white">{r.record_women}</span>
+                      <span className="text-sm font-mono font-bold text-zinc-900">{r.record_women}</span>
                     </div>
                   )}
                 </div>
@@ -294,18 +294,18 @@ export default async function RaceDetailPage({
 
             {/* Weather */}
             {r.avg_temp_celsius && (
-              <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
-                <h3 className="font-bold text-white mb-4">Météo Moyenne</h3>
+              <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
+                <h3 className="font-bold text-zinc-900 mb-4">Météo Moyenne</h3>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Sun className="text-amber-500" />
-                    <span className="text-2xl font-mono font-bold text-white">{r.avg_temp_celsius}°C</span>
+                    <span className="text-2xl font-mono font-bold text-zinc-900">{r.avg_temp_celsius}°C</span>
                   </div>
                   {temp.label && (
                     <span className={`text-xs font-bold px-2 py-1 rounded ${temp.color}`}>{temp.label}</span>
                   )}
                 </div>
-                <div className="flex items-center justify-between text-sm text-zinc-500 border-t border-zinc-800 pt-4">
+                <div className="flex items-center justify-between text-sm text-zinc-500 border-t border-gray-200 pt-4">
                   {r.avg_wind_kmh && (
                     <div className="flex items-center gap-1"><Wind size={14} /> {r.avg_wind_kmh} km/h</div>
                   )}
@@ -317,35 +317,35 @@ export default async function RaceDetailPage({
             )}
 
             {/* Infos pratiques */}
-            <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 space-y-4">
-              <h3 className="font-bold text-white">Infos pratiques</h3>
+            <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+              <h3 className="font-bold text-zinc-900">Infos pratiques</h3>
               {r.price_euros && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-zinc-500"><Euro size={14} /> Inscription</div>
-                  <span className="font-mono font-bold text-white">{r.price_euros}€</span>
+                  <span className="font-mono font-bold text-zinc-900">{r.price_euros}€</span>
                 </div>
               )}
               {r.time_limit_hours && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-zinc-500"><Clock size={14} /> Barrière horaire</div>
-                  <span className="font-mono font-bold text-white">{r.time_limit_hours}h</span>
+                  <span className="font-mono font-bold text-zinc-900">{r.time_limit_hours}h</span>
                 </div>
               )}
               {r.max_participants && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-zinc-500"><Users size={14} /> Places</div>
-                  <span className="font-mono font-bold text-white">{r.max_participants.toLocaleString('fr-FR')}</span>
+                  <span className="font-mono font-bold text-zinc-900">{r.max_participants.toLocaleString('fr-FR')}</span>
                 </div>
               )}
             </div>
 
             {/* Tags */}
             {r.tags && r.tags.length > 0 && (
-              <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
-                <h3 className="font-bold text-white mb-3">Tags</h3>
+              <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
+                <h3 className="font-bold text-zinc-900 mb-3">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {r.tags.map((tag) => (
-                    <span key={tag} className="text-xs font-bold text-zinc-400 bg-zinc-800 px-3 py-1.5 rounded-full">
+                    <span key={tag} className="text-xs font-bold text-zinc-500 bg-gray-100 px-3 py-1.5 rounded-full">
                       {tag}
                     </span>
                   ))}
@@ -355,8 +355,8 @@ export default async function RaceDetailPage({
 
             {/* Links */}
             {(r.website_url || r.finishers_url) && (
-              <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 space-y-3">
-                <h3 className="font-bold text-white">Liens</h3>
+              <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-3">
+                <h3 className="font-bold text-zinc-900">Liens</h3>
                 {r.website_url && (
                   <a href={r.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 font-bold transition">
                     <ExternalLink size={14} /> Site officiel

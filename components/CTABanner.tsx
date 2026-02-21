@@ -15,12 +15,12 @@ export default function CTABanner({ raceSlug, raceName }: { raceSlug?: string; r
             <Zap size={16} className="text-red-500" />
             <span className="text-xs font-bold text-red-400 uppercase tracking-wider">TriCoach</span>
           </div>
-          <h3 className="text-lg font-bold text-white mb-1">
+          <h3 className="text-lg font-bold text-zinc-900 mb-1">
             {raceName
               ? `Prépare ${raceName} avec un coaching personnalisé`
               : 'Planifie ta saison avec un coaching personnalisé'}
           </h3>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-zinc-500">
             Plans d&apos;entraînement, suivi de performance, coaching IA.
           </p>
         </div>

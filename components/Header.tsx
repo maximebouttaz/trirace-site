@@ -5,14 +5,14 @@ const TRICOACH_URL = process.env.NEXT_PUBLIC_TRICOACH_URL || 'https://tricoach.a
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/50">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
             <Trophy size={16} className="text-white" />
           </div>
-          <span className="text-lg font-bold text-white tracking-tight">
+          <span className="text-lg font-bold text-zinc-900 tracking-tight">
             Tri<span className="text-red-500">Race</span>
           </span>
         </Link>
@@ -21,13 +21,13 @@ export default function Header() {
         <nav className="flex items-center gap-6">
           <Link
             href="/courses"
-            className="text-sm font-semibold text-zinc-400 hover:text-white transition"
+            className="text-sm font-semibold text-zinc-500 hover:text-zinc-900 transition"
           >
             Courses
           </Link>
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 text-sm font-semibold text-zinc-400 hover:text-white transition"
+            className="flex items-center gap-1.5 text-sm font-semibold text-zinc-500 hover:text-zinc-900 transition"
           >
             <LayoutDashboard size={14} />
             Organisateurs

@@ -46,7 +46,7 @@ export default async function RacesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-sm text-zinc-500 font-medium mb-1">Dashboard</p>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Mes courses</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tight">Mes courses</h1>
         </div>
         <Link
           href="/dashboard/races/new"
@@ -58,13 +58,13 @@ export default async function RacesPage() {
       </div>
 
       {/* Table / empty state */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+      <div className="bg-gray-50 border border-gray-200 rounded-3xl overflow-hidden">
         {races.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-            <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center mb-5">
-              <Flag size={28} className="text-zinc-600" />
+            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-5">
+              <Flag size={28} className="text-zinc-400" />
             </div>
-            <p className="text-white font-bold text-lg mb-2">Aucune course enregistrée</p>
+            <p className="text-zinc-900 font-bold text-lg mb-2">Aucune course enregistrée</p>
             <p className="text-sm text-zinc-500 mb-8 max-w-xs">
               Vous n&apos;avez pas encore ajouté de course. Commencez par en créer une !
             </p>
@@ -82,7 +82,7 @@ export default async function RacesPage() {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800">
+                  <tr className="border-b border-gray-200">
                     <th className="text-left px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider">
                       Nom
                     </th>
@@ -103,21 +103,21 @@ export default async function RacesPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-gray-200">
                   {races.map((race) => (
                     <tr
                       key={race.id}
-                      className="hover:bg-zinc-800/40 transition-colors group"
+                      className="hover:bg-gray-100/40 transition-colors group"
                     >
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-white">{race.name}</p>
+                        <p className="font-semibold text-zinc-900">{race.name}</p>
                       </td>
                       <td className="px-4 py-4 text-zinc-400 whitespace-nowrap">
                         {formatDate(race.date)}
                       </td>
                       <td className="px-4 py-4 text-zinc-400">{race.city}</td>
                       <td className="px-4 py-4">
-                        <span className="text-xs font-mono font-bold text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-lg">
+                        <span className="text-xs font-mono font-bold text-zinc-500 bg-gray-100 px-2 py-0.5 rounded-lg">
                           {race.category}
                         </span>
                       </td>
@@ -132,7 +132,7 @@ export default async function RacesPage() {
                               target="_blank"
                               rel="noopener noreferrer"
                               title="Voir la page publique"
-                              className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-700 transition-all"
+                              className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-gray-200 transition-all"
                             >
                               <ExternalLink size={15} />
                             </Link>
@@ -140,7 +140,7 @@ export default async function RacesPage() {
                           <Link
                             href={`/dashboard/races/${race.id}/edit`}
                             title="Modifier"
-                            className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-700 transition-all"
+                            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-gray-200 transition-all"
                           >
                             <Pencil size={15} />
                           </Link>
@@ -154,11 +154,11 @@ export default async function RacesPage() {
             </div>
 
             {/* Mobile card list */}
-            <div className="md:hidden divide-y divide-zinc-800">
+            <div className="md:hidden divide-y divide-gray-200">
               {races.map((race) => (
                 <div key={race.id} className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-3">
-                    <p className="font-semibold text-white leading-tight">{race.name}</p>
+                    <p className="font-semibold text-zinc-900 leading-tight">{race.name}</p>
                     <StatusBadge status={race.status} />
                   </div>
                   <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
@@ -170,7 +170,7 @@ export default async function RacesPage() {
                       <MapPin size={11} />
                       {race.city}
                     </span>
-                    <span className="font-mono font-bold text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-lg">
+                    <span className="font-mono font-bold text-zinc-500 bg-gray-100 px-2 py-0.5 rounded-lg">
                       {race.category}
                     </span>
                   </div>
@@ -180,7 +180,7 @@ export default async function RacesPage() {
                         href={`/courses/${race.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-zinc-900 bg-gray-100 hover:bg-gray-200 transition-all"
                       >
                         <ExternalLink size={12} />
                         Voir
@@ -188,7 +188,7 @@ export default async function RacesPage() {
                     )}
                     <Link
                       href={`/dashboard/races/${race.id}/edit`}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-zinc-900 bg-gray-100 hover:bg-gray-200 transition-all"
                     >
                       <Pencil size={12} />
                       Modifier

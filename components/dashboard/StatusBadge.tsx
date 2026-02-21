@@ -13,7 +13,7 @@ const CONFIG = {
   },
   draft: {
     label: 'Brouillon',
-    className: 'bg-zinc-700 text-zinc-400',
+    className: 'bg-gray-200 text-zinc-500',
   },
 } as const
 

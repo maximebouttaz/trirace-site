@@ -54,8 +54,8 @@ function metersToKm(val: string): string {
 }
 
 const inputClass =
-  'bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 w-full placeholder-zinc-600 transition-colors'
-const labelClass = 'text-zinc-400 text-sm mb-1 block'
+  'bg-white border border-gray-200 text-zinc-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 w-full placeholder-zinc-400 transition-colors'
+const labelClass = 'text-zinc-500 text-sm mb-1 block'
 
 export default function RaceForm({ initialData, onSubmit, isLoading = false }: RaceFormProps) {
   const [formData, setFormData] = useState<RaceFormData>({
@@ -110,8 +110,8 @@ export default function RaceForm({ initialData, onSubmit, isLoading = false }: R
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* ── Section: Informations générales ── */}
-      <section className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 space-y-5">
-        <h2 className="text-white font-semibold text-base mb-2">Informations générales</h2>
+      <section className="bg-gray-50 rounded-2xl border border-gray-200 p-6 space-y-5">
+        <h2 className="text-zinc-900 font-semibold text-base mb-2">Informations générales</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Nom */}
@@ -142,7 +142,7 @@ export default function RaceForm({ initialData, onSubmit, isLoading = false }: R
               type="date"
               value={formData.date}
               onChange={set('date')}
-              className={inputClass + ' [color-scheme:dark]'}
+              className={inputClass + ' [color-scheme:light]'}
             />
             {errors.date && (
               <p className="mt-1 text-red-400 text-xs flex items-center gap-1">
@@ -259,8 +259,8 @@ export default function RaceForm({ initialData, onSubmit, isLoading = false }: R
       </section>
 
       {/* ── Section: Distances ── */}
-      <section className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 space-y-5">
-        <h2 className="text-white font-semibold text-base mb-2">Distances</h2>
+      <section className="bg-gray-50 rounded-2xl border border-gray-200 p-6 space-y-5">
+        <h2 className="text-zinc-900 font-semibold text-base mb-2">Distances</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Natation */}
           <div>
@@ -337,8 +337,8 @@ export default function RaceForm({ initialData, onSubmit, isLoading = false }: R
       </section>
 
       {/* ── Section: Infos pratiques ── */}
-      <section className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 space-y-5">
-        <h2 className="text-white font-semibold text-base mb-2">Infos pratiques</h2>
+      <section className="bg-gray-50 rounded-2xl border border-gray-200 p-6 space-y-5">
+        <h2 className="text-zinc-900 font-semibold text-base mb-2">Infos pratiques</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* Prix */}
           <div>
@@ -401,8 +401,8 @@ export default function RaceForm({ initialData, onSubmit, isLoading = false }: R
       </section>
 
       {/* ── Section: Description ── */}
-      <section className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 space-y-4">
-        <h2 className="text-white font-semibold text-base mb-2">Description</h2>
+      <section className="bg-gray-50 rounded-2xl border border-gray-200 p-6 space-y-4">
+        <h2 className="text-zinc-900 font-semibold text-base mb-2">Description</h2>
         <div>
           <label className={labelClass}>Description de la course</label>
           <textarea

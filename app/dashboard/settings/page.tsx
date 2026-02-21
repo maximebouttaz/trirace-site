@@ -85,7 +85,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto flex items-center justify-center py-32">
-        <Loader2 size={28} className="animate-spin text-zinc-600" />
+        <Loader2 size={28} className="animate-spin text-zinc-400" />
       </div>
     )
   }
@@ -95,7 +95,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div>
         <p className="text-sm text-zinc-500 font-medium mb-1">Dashboard</p>
-        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Paramètres</h1>
+        <h1 className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tight">Paramètres</h1>
       </div>
 
       {/* Toast */}
@@ -117,9 +117,9 @@ export default function SettingsPage() {
       )}
 
       {/* Profile form */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <div className="px-6 py-5 border-b border-zinc-800">
-          <h2 className="text-base font-bold text-white">Informations du profil</h2>
+      <div className="bg-gray-50 border border-gray-200 rounded-3xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-200">
+          <h2 className="text-base font-bold text-zinc-900">Informations du profil</h2>
           <p className="text-sm text-zinc-500 mt-0.5">
             Ces informations apparaîtront sur vos pages de courses.
           </p>
@@ -130,7 +130,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <label
               htmlFor="full_name"
-              className="flex items-center gap-2 text-sm font-semibold text-zinc-300"
+              className="flex items-center gap-2 text-sm font-semibold text-zinc-600"
             >
               <User size={14} className="text-zinc-500" />
               Nom complet
@@ -141,7 +141,7 @@ export default function SettingsPage() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Jean Dupont"
-              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/40 transition-all"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-zinc-900 placeholder-zinc-400 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/40 transition-all"
             />
           </div>
 
@@ -149,7 +149,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <label
               htmlFor="organization_name"
-              className="flex items-center gap-2 text-sm font-semibold text-zinc-300"
+              className="flex items-center gap-2 text-sm font-semibold text-zinc-600"
             >
               <Building2 size={14} className="text-zinc-500" />
               Nom de l&apos;organisation
@@ -160,9 +160,9 @@ export default function SettingsPage() {
               value={organizationName}
               onChange={(e) => setOrganizationName(e.target.value)}
               placeholder="Club Triathlon de Paris"
-              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/40 transition-all"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-zinc-900 placeholder-zinc-400 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/40 transition-all"
             />
-            <p className="text-xs text-zinc-600">
+            <p className="text-xs text-zinc-400">
               Affiché en tant qu&apos;organisateur sur les pages de vos courses.
             </p>
           </div>
@@ -170,13 +170,13 @@ export default function SettingsPage() {
           {/* Email (read-only) */}
           {profile?.email && (
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
+              <label className="flex items-center gap-2 text-sm font-semibold text-zinc-600">
                 Adresse e-mail
               </label>
-              <div className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-800 rounded-xl text-zinc-500 text-sm select-all cursor-default">
+              <div className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-zinc-500 text-sm select-all cursor-default">
                 {profile.email}
               </div>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-zinc-400">
                 L&apos;e-mail ne peut pas être modifié ici.
               </p>
             </div>
@@ -185,10 +185,10 @@ export default function SettingsPage() {
           {/* Role (read-only) */}
           {profile?.role && (
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
+              <label className="flex items-center gap-2 text-sm font-semibold text-zinc-600">
                 Rôle
               </label>
-              <div className="inline-flex items-center px-3 py-1.5 bg-zinc-800/50 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-500 capitalize">
+              <div className="inline-flex items-center px-3 py-1.5 bg-gray-50/50 border border-gray-200 rounded-lg text-xs font-semibold text-zinc-500 capitalize">
                 {profile.role === 'admin' ? 'Administrateur' : 'Organisateur'}
               </div>
             </div>

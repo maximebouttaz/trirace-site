@@ -49,7 +49,7 @@ export default function RaceFilters({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Chercher une course, ville, région..."
-          className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-zinc-800 bg-zinc-900 text-sm text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-red-500/30 focus:border-red-500/50 outline-none transition"
+          className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-gray-200 bg-gray-100 text-sm text-zinc-900 placeholder-zinc-400 focus:ring-2 focus:ring-red-500/30 focus:border-red-500/50 outline-none transition"
         />
       </div>
 
@@ -64,8 +64,8 @@ export default function RaceFilters({
               aria-pressed={activeCategory === cat.key}
               className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
                 activeCategory === cat.key
-                  ? 'bg-white text-zinc-900 shadow-md'
-                  : 'bg-zinc-900 border border-zinc-800 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
+                  ? 'bg-zinc-900 text-white shadow-md'
+                  : 'bg-white border border-gray-200 text-zinc-500 hover:bg-gray-100 hover:text-zinc-700'
               }`}
             >
               {cat.label}
@@ -82,14 +82,14 @@ export default function RaceFilters({
               id="race-sort"
               value={sort}
               onChange={(e) => onSortChange(e.target.value as SortOption)}
-              className="pl-8 pr-3 py-2 rounded-xl text-sm font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 hover:border-zinc-700 focus:ring-2 focus:ring-red-500/30 focus:border-red-500/50 outline-none transition appearance-none cursor-pointer"
+              className="pl-8 pr-3 py-2 rounded-xl text-sm font-bold bg-gray-100 border border-gray-200 text-zinc-500 hover:border-gray-300 focus:ring-2 focus:ring-red-500/30 focus:border-red-500/50 outline-none transition appearance-none cursor-pointer"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.key} value={opt.key}>{opt.label}</option>
               ))}
             </select>
           </div>
-          <span className="text-xs text-zinc-500 font-mono whitespace-nowrap">
+          <span className="text-xs text-zinc-400 font-mono whitespace-nowrap">
             {count} course{count > 1 ? 's' : ''}
           </span>
         </div>

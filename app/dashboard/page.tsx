@@ -90,8 +90,8 @@ export default async function DashboardPage() {
       label: 'Brouillons',
       value: draftRaces,
       icon: FileEdit,
-      color: 'text-zinc-400',
-      bg: 'bg-zinc-700/50',
+      color: 'text-zinc-500',
+      bg: 'bg-gray-200/50',
     },
   ]
 
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-sm text-zinc-500 font-medium mb-1">Tableau de bord</p>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tight">
             Bienvenue,{' '}
             <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
               {organizerName}
@@ -122,13 +122,13 @@ export default async function DashboardPage() {
         {STATS.map(({ label, value, icon: Icon, color, bg }) => (
           <div
             key={label}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4"
+            className="bg-gray-50 border border-gray-200 rounded-2xl p-5 flex items-center gap-4"
           >
             <div className={`w-11 h-11 ${bg} rounded-xl flex items-center justify-center shrink-0`}>
               <Icon size={20} className={color} />
             </div>
             <div>
-              <p className="text-2xl font-black text-white">{value}</p>
+              <p className="text-2xl font-black text-zinc-900">{value}</p>
               <p className="text-xs text-zinc-500 font-medium">{label}</p>
             </div>
           </div>
@@ -136,9 +136,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent races */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-800">
-          <h2 className="text-base font-bold text-white">Courses récentes</h2>
+      <div className="bg-gray-50 border border-gray-200 rounded-3xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+          <h2 className="text-base font-bold text-zinc-900">Courses récentes</h2>
           <Link
             href="/dashboard/races"
             className="flex items-center gap-1 text-sm font-semibold text-red-400 hover:text-red-300 transition"
@@ -149,10 +149,10 @@ export default async function DashboardPage() {
 
         {recentRaces.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-            <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4">
-              <Flag size={24} className="text-zinc-600" />
+            <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+              <Flag size={24} className="text-zinc-400" />
             </div>
-            <p className="text-white font-semibold mb-1">Aucune course pour le moment</p>
+            <p className="text-zinc-900 font-semibold mb-1">Aucune course pour le moment</p>
             <p className="text-sm text-zinc-500 mb-6">
               Commencez par ajouter votre première course.
             </p>
@@ -165,14 +165,14 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-gray-200">
             {recentRaces.map((race) => (
               <div
                 key={race.id}
-                className="flex items-center justify-between px-6 py-4 hover:bg-zinc-800/50 transition-colors group"
+                className="flex items-center justify-between px-6 py-4 hover:bg-gray-100/50 transition-colors group"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-white truncate">{race.name}</p>
+                  <p className="text-sm font-semibold text-zinc-900 truncate">{race.name}</p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="flex items-center gap-1 text-xs text-zinc-500">
                       <Calendar size={11} />
@@ -182,14 +182,14 @@ export default async function DashboardPage() {
                       <MapPin size={11} />
                       {race.city}
                     </span>
-                    <span className="text-xs text-zinc-600 font-mono">{race.category}</span>
+                    <span className="text-xs text-zinc-400 font-mono">{race.category}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 ml-4 shrink-0">
                   <StatusBadge status={race.status} />
                   <Link
                     href={`/dashboard/races/${race.id}/edit`}
-                    className="text-xs text-zinc-500 hover:text-white transition opacity-0 group-hover:opacity-100"
+                    className="text-xs text-zinc-500 hover:text-zinc-900 transition opacity-0 group-hover:opacity-100"
                   >
                     Modifier
                   </Link>

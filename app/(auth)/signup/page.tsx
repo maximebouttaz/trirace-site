@@ -66,9 +66,9 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 py-16">
+      <div className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md text-center">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-10">
+          <div className="bg-gray-50 border border-gray-200 rounded-3xl p-10">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-8 h-8 text-red-400"
@@ -84,12 +84,12 @@ export default function SignupPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">
+            <h2 className="text-2xl font-bold text-zinc-900 mb-3">
               Vérifiez votre e-mail
             </h2>
-            <p className="text-zinc-400 mb-6">
+            <p className="text-zinc-500 mb-6">
               Un lien de confirmation a été envoyé à{' '}
-              <span className="text-zinc-200 font-medium">{email}</span>.
+              <span className="text-zinc-700 font-medium">{email}</span>.
               Cliquez sur ce lien pour activer votre compte.
             </p>
             <Link
@@ -105,16 +105,16 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 py-16">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         {/* Logo / brand */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-white">
+            <span className="text-2xl font-bold text-zinc-900">
               Tri<span className="text-red-500">Race</span>
             </span>
           </Link>
-          <h1 className="mt-4 text-3xl font-bold text-white">
+          <h1 className="mt-4 text-3xl font-bold text-zinc-900">
             Créer un compte
           </h1>
           <p className="mt-2 text-zinc-400">
@@ -123,7 +123,7 @@ export default function SignupPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+        <div className="bg-gray-50 border border-gray-200 rounded-3xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Error message */}
             {error && (
@@ -136,7 +136,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="full_name"
-                className="block text-sm font-medium text-zinc-300 mb-1.5"
+                className="block text-sm font-medium text-zinc-600 mb-1.5"
               >
                 Nom complet
               </label>
@@ -148,7 +148,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Jean Dupont"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
               />
             </div>
 
@@ -156,7 +156,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="organization_name"
-                className="block text-sm font-medium text-zinc-300 mb-1.5"
+                className="block text-sm font-medium text-zinc-600 mb-1.5"
               >
                 Nom de l&apos;organisation
               </label>
@@ -168,7 +168,7 @@ export default function SignupPage() {
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
                 placeholder="Club Triathlon de Lyon"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
               />
             </div>
 
@@ -176,7 +176,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-zinc-300 mb-1.5"
+                className="block text-sm font-medium text-zinc-600 mb-1.5"
               >
                 Adresse e-mail
               </label>
@@ -188,7 +188,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.fr"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
               />
             </div>
 
@@ -196,7 +196,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-zinc-300 mb-1.5"
+                className="block text-sm font-medium text-zinc-600 mb-1.5"
               >
                 Mot de passe
               </label>
@@ -209,7 +209,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min. 8 caractères"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
               />
             </div>
 
@@ -217,7 +217,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="confirm_password"
-                className="block text-sm font-medium text-zinc-300 mb-1.5"
+                className="block text-sm font-medium text-zinc-600 mb-1.5"
               >
                 Confirmer le mot de passe
               </label>
@@ -229,7 +229,7 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
               />
             </div>
 

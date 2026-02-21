@@ -51,55 +51,55 @@ export default async function HomePage() {
     <div>
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-zinc-950 to-zinc-950" />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 via-white to-white" />
         <div className="relative max-w-7xl mx-auto px-6 md:px-10 py-24 md:py-36">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
                 <Trophy size={20} className="text-white" />
               </div>
-              <span className="text-sm font-bold text-zinc-500 uppercase tracking-wider">TriRace</span>
+              <span className="text-sm font-bold text-zinc-400 uppercase tracking-wider">TriRace</span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight mb-6">
+            <h1 className="text-4xl md:text-6xl font-black text-zinc-900 tracking-tight leading-tight mb-6">
               Trouve ta prochaine{' '}
               <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
                 course triathlon
               </span>
             </h1>
 
-            <p className="text-lg text-zinc-400 mb-10 max-w-xl leading-relaxed">
+            <p className="text-lg text-zinc-500 mb-10 max-w-xl leading-relaxed">
               Explore {races.length}+ courses en France et en Europe. Distances, dénivelé, météo, records — toutes les infos pour choisir ta course.
             </p>
 
             {/* Search CTA */}
             <Link
               href="/courses"
-              className="group inline-flex items-center gap-3 px-8 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-zinc-700 hover:bg-zinc-800 transition-all"
+              className="group inline-flex items-center gap-3 px-8 py-4 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all shadow-sm"
             >
-              <Search size={20} className="text-zinc-500" />
-              <span className="text-zinc-500 group-hover:text-zinc-300 transition">Chercher une course, ville, région...</span>
-              <ArrowRight size={16} className="text-zinc-600 group-hover:text-white transition ml-4" />
+              <Search size={20} className="text-zinc-400" />
+              <span className="text-zinc-400 group-hover:text-zinc-600 transition">Chercher une course, ville, région...</span>
+              <ArrowRight size={16} className="text-zinc-300 group-hover:text-zinc-900 transition ml-4" />
             </Link>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 mt-16 max-w-lg">
             <div>
-              <p className="text-3xl font-mono font-bold text-white">{races.length}+</p>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mt-1">Courses</p>
+              <p className="text-3xl font-mono font-bold text-zinc-900">{races.length}+</p>
+              <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mt-1">Courses</p>
             </div>
             <div>
-              <p className="text-3xl font-mono font-bold text-white">
+              <p className="text-3xl font-mono font-bold text-zinc-900">
                 {new Set(races.map(r => r.country)).size}
               </p>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mt-1">Pays</p>
+              <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mt-1">Pays</p>
             </div>
             <div>
-              <p className="text-3xl font-mono font-bold text-white">
+              <p className="text-3xl font-mono font-bold text-zinc-900">
                 {new Set(races.map(r => r.category)).size}
               </p>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mt-1">Formats</p>
+              <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mt-1">Formats</p>
             </div>
           </div>
         </div>
@@ -109,12 +109,12 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-6 md:px-10 py-16">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">Courses populaires</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 mb-1">Courses populaires</h2>
             <p className="text-sm text-zinc-500">Les incontournables du calendrier triathlon</p>
           </div>
           <Link
             href="/courses"
-            className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition"
+            className="flex items-center gap-2 text-sm font-bold text-red-500 hover:text-red-400 transition"
           >
             Voir toutes <ArrowRight size={14} />
           </Link>
@@ -129,7 +129,7 @@ export default async function HomePage() {
 
       {/* CATEGORIES */}
       <section className="max-w-7xl mx-auto px-6 md:px-10 py-16">
-        <h2 className="text-2xl font-bold text-white mb-2">Par catégorie</h2>
+        <h2 className="text-2xl font-bold text-zinc-900 mb-2">Par catégorie</h2>
         <p className="text-sm text-zinc-500 mb-8">Du sprint à l&apos;Ironman, trouve le format qui te correspond</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -140,16 +140,16 @@ export default async function HomePage() {
               <Link
                 key={section.key}
                 href={`/courses?category=${section.key}`}
-                className="group relative overflow-hidden rounded-2xl border border-zinc-800 hover:border-zinc-700 transition-all"
+                className="group relative overflow-hidden rounded-2xl border border-gray-200 hover:border-gray-300 transition-all"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-10 group-hover:opacity-20 transition`} />
                 <div className="relative p-6 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-white mb-1">{section.label}</h3>
+                    <h3 className="text-lg font-bold text-zinc-900 mb-1">{section.label}</h3>
                     <p className="text-sm text-zinc-500">{section.desc}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-mono font-bold text-white">{count}</p>
+                    <p className="text-2xl font-mono font-bold text-zinc-900">{count}</p>
                     <p className="text-xs text-zinc-500">courses</p>
                   </div>
                 </div>
@@ -161,8 +161,8 @@ export default async function HomePage() {
 
       {/* SPORTS BREAKDOWN */}
       <section className="max-w-7xl mx-auto px-6 md:px-10 py-16">
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 md:p-12">
-          <h2 className="text-2xl font-bold text-white mb-2 text-center">3 disciplines, 1 passion</h2>
+        <div className="bg-gray-50 rounded-3xl border border-gray-200 p-8 md:p-12">
+          <h2 className="text-2xl font-bold text-zinc-900 mb-2 text-center">3 disciplines, 1 passion</h2>
           <p className="text-sm text-zinc-500 text-center mb-10">Chaque course combine natation, vélo et course à pied</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -170,21 +170,21 @@ export default async function HomePage() {
               <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Waves size={28} className="text-cyan-500" />
               </div>
-              <h3 className="font-bold text-white mb-1">Natation</h3>
+              <h3 className="font-bold text-zinc-900 mb-1">Natation</h3>
               <p className="text-sm text-zinc-500">De 400m (Sprint) à 3.8km (Ironman) en eau libre</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Bike size={28} className="text-red-500" />
               </div>
-              <h3 className="font-bold text-white mb-1">Vélo</h3>
+              <h3 className="font-bold text-zinc-900 mb-1">Vélo</h3>
               <p className="text-sm text-zinc-500">De 20km (Sprint) à 180km (Ironman) sur route</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Activity size={28} className="text-amber-500" />
               </div>
-              <h3 className="font-bold text-white mb-1">Course à pied</h3>
+              <h3 className="font-bold text-zinc-900 mb-1">Course à pied</h3>
               <p className="text-sm text-zinc-500">De 5km (Sprint) à 42.2km (Ironman) en marathon</p>
             </div>
           </div>
@@ -198,13 +198,13 @@ export default async function HomePage() {
 
       {/* Organizer CTA */}
       <section className="max-w-7xl mx-auto px-6 md:px-10 pb-20">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl px-8 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="bg-gray-50 border border-gray-200 rounded-3xl px-8 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
           <div>
             <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Vous organisez des courses ?</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mb-3">
               Référencez vos épreuves gratuitement
             </h2>
-            <p className="text-zinc-400 max-w-lg">
+            <p className="text-zinc-500 max-w-lg">
               Créez votre espace organisateur et publiez vos courses directement sur TriRace — visibilité immédiate auprès de milliers de triathlètes.
             </p>
           </div>
@@ -217,7 +217,7 @@ export default async function HomePage() {
             </a>
             <a
               href="/login"
-              className="flex items-center justify-center px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl transition whitespace-nowrap"
+              className="flex items-center justify-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-zinc-900 font-semibold rounded-xl transition whitespace-nowrap"
             >
               Se connecter
             </a>

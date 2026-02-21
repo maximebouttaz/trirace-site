@@ -72,7 +72,7 @@ export default function CoursesPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Toutes les courses</h1>
+          <h1 className="text-3xl font-bold text-zinc-900 mb-2">Toutes les courses</h1>
           <p className="text-zinc-500">
             {loading ? 'Chargement...' : `${races.length} courses triathlon en France et en Europe`}
           </p>
@@ -95,23 +95,23 @@ export default function CoursesPage() {
         {error ? (
           <div className="text-center py-20">
             <p className="text-zinc-500 text-sm">Impossible de charger les courses. Réessaie dans quelques instants.</p>
-            <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-zinc-400 hover:border-zinc-700 transition">
+            <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm text-zinc-500 hover:border-gray-300 transition">
               Réessayer
             </button>
           </div>
         ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="animate-pulse bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800">
-                <div className="h-36 bg-zinc-800" />
+              <div key={i} className="animate-pulse bg-gray-50 rounded-3xl overflow-hidden border border-gray-200">
+                <div className="h-36 bg-gray-100" />
                 <div className="p-5 space-y-3">
-                  <div className="h-3 w-24 bg-zinc-800 rounded" />
-                  <div className="h-5 w-3/4 bg-zinc-700 rounded" />
-                  <div className="h-3 w-32 bg-zinc-800 rounded" />
+                  <div className="h-3 w-24 bg-gray-200 rounded" />
+                  <div className="h-5 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-3 w-32 bg-gray-200 rounded" />
                   <div className="flex gap-4">
-                    <div className="h-3 w-12 bg-zinc-800 rounded" />
-                    <div className="h-3 w-12 bg-zinc-800 rounded" />
-                    <div className="h-3 w-12 bg-zinc-800 rounded" />
+                    <div className="h-3 w-12 bg-gray-200 rounded" />
+                    <div className="h-3 w-12 bg-gray-200 rounded" />
+                    <div className="h-3 w-12 bg-gray-200 rounded" />
                   </div>
                 </div>
               </div>
@@ -119,8 +119,8 @@ export default function CoursesPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <Search size={48} className="mx-auto text-zinc-700 mb-4" />
-            <h3 className="font-bold text-white text-lg">Aucune course trouvée</h3>
+            <Search size={48} className="mx-auto text-zinc-300 mb-4" />
+            <h3 className="font-bold text-zinc-900 text-lg">Aucune course trouvée</h3>
             <p className="text-zinc-500 text-sm mt-2">Essaie un autre filtre ou une autre recherche.</p>
           </div>
         ) : (

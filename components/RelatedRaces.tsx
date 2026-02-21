@@ -34,8 +34,8 @@ export default function RelatedRaces({ currentRace, allRaces }: RelatedRacesProp
   if (related.length < 1) return null;
 
   return (
-    <section className="bg-zinc-900 rounded-3xl border border-zinc-800 p-6">
-      <h2 className="text-xl font-bold text-white mb-6">Courses similaires</h2>
+    <section className="bg-gray-50 rounded-3xl border border-gray-200 p-6">
+      <h2 className="text-xl font-bold text-zinc-900 mb-6">Courses similaires</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {related.map((race) => (
           <RaceCard key={race.id} race={race} />
