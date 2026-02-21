@@ -52,38 +52,17 @@ COMMENT ON COLUMN public.races.status IS
 
 
 -- =============================================================================
--- SECTION 3: Auto-create profile on signup
--- When a new user registers via Supabase Auth, a corresponding profiles row is
--- created automatically using metadata supplied at sign-up time.
+-- SECTION 3: Profile insert policy
+-- Profile creation is handled in the Next.js signup flow (not via trigger
+-- because the SQL Editor cannot create triggers on auth.users).
+-- We need an INSERT policy so the signup code can create the profile.
 -- =============================================================================
 
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, full_name, organization_name, email, role)
-  VALUES (
-    NEW.id,
-    NEW.raw_user_meta_data->>'full_name',
-    NEW.raw_user_meta_data->>'organization_name',
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'role', 'organizer')
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-COMMENT ON FUNCTION public.handle_new_user() IS
-  'Trigger function that inserts a profiles row whenever a new auth.users row is created.';
-
--- Drop the trigger first to allow idempotent re-runs of this migration.
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-
-CREATE OR REPLACE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
-
-COMMENT ON TRIGGER on_auth_user_created ON auth.users IS
-  'Fires after every new Supabase Auth sign-up to create the matching profiles row.';
+-- Allow authenticated users to insert their own profile (used at signup).
+CREATE POLICY "profiles: users can insert own profile"
+  ON public.profiles
+  FOR INSERT
+  WITH CHECK (id = auth.uid());
 
 
 -- =============================================================================

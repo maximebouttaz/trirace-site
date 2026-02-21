@@ -31,7 +31,7 @@ export default function SignupPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,6 +47,17 @@ export default function SignupPage() {
       setError(error.message)
       setLoading(false)
       return
+    }
+
+    // Créer le profil manuellement (pas de trigger sur auth.users)
+    if (data.user) {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        full_name: fullName,
+        organization_name: organizationName,
+        email,
+        role: 'organizer',
+      })
     }
 
     setSuccess(true)
