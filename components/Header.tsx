@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Trophy, ArrowRight } from 'lucide-react';
+import { Trophy, ArrowRight, LayoutDashboard } from 'lucide-react';
 
 const TRICOACH_URL = process.env.NEXT_PUBLIC_TRICOACH_URL || 'https://tricoach.app';
 
@@ -24,6 +24,13 @@ export default function Header() {
             className="text-sm font-semibold text-zinc-400 hover:text-white transition"
           >
             Courses
+          </Link>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1.5 text-sm font-semibold text-zinc-400 hover:text-white transition"
+          >
+            <LayoutDashboard size={14} />
+            Organisateurs
           </Link>
           <a
             href={TRICOACH_URL}

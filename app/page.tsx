@@ -195,6 +195,35 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-6 md:px-10 py-16">
         <CTABanner />
       </section>
+
+      {/* Organizer CTA */}
+      <section className="max-w-7xl mx-auto px-6 md:px-10 pb-20">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl px-8 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div>
+            <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Vous organisez des courses ?</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+              Référencez vos épreuves gratuitement
+            </h2>
+            <p className="text-zinc-400 max-w-lg">
+              Créez votre espace organisateur et publiez vos courses directement sur TriRace — visibilité immédiate auprès de milliers de triathlètes.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+            <a
+              href="/signup"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-red-500/20 transition-all whitespace-nowrap"
+            >
+              Créer un compte organisateur
+            </a>
+            <a
+              href="/login"
+              className="flex items-center justify-center px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl transition whitespace-nowrap"
+            >
+              Se connecter
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
