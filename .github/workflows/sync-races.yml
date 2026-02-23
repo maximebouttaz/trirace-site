@@ -5,11 +5,11 @@ on:
   schedule:
     - cron: "0 6 * * 1"
 
-  # Déclenchement manuel depuis GitHub Actions → "Run workflow"
+  # Déclenchement manuel depuis GitHub Actions ou depuis l'admin TriRace
   workflow_dispatch:
     inputs:
       sources:
-        description: "Sources à scraper (séparées par des espaces, vide = toutes)"
+        description: "Sources (milesrepublic | finishers | fftri | opentri | ironman | les_chronos | vide = tout)"
         required: false
         default: ""
       year:
@@ -42,34 +42,75 @@ jobs:
       - name: Install dependencies
         run: pip install -r scripts/requirements.txt
 
-      - name: Build sync command
-        id: build_cmd
+      - name: Resolve run plan
+        id: plan
         run: |
-          CMD="python scripts/sync.py"
+          SOURCES="${{ github.event.inputs.sources }}"
+          VALID_SYNC_SOURCES="fftri opentri ironman les_chronos"
 
-          # Sources
-          if [ -n "${{ github.event.inputs.sources }}" ]; then
-            CMD="$CMD --sources ${{ github.event.inputs.sources }}"
+          # Faut-il lancer sync.py ?
+          if [ -z "$SOURCES" ] || echo "$VALID_SYNC_SOURCES" | grep -qw "$SOURCES"; then
+            RUN_SYNC=true
+          else
+            RUN_SYNC=false
           fi
 
-          # Année
+          # Faut-il lancer sync_new_races.py (MilesRepublic) ?
+          if [ -z "$SOURCES" ] || [ "$SOURCES" = "milesrepublic" ]; then
+            RUN_MR=true
+          else
+            RUN_MR=false
+          fi
+
+          # Faut-il lancer sync_new_races_finishers.py ?
+          if [ -z "$SOURCES" ] || [ "$SOURCES" = "finishers" ]; then
+            RUN_FINISHERS=true
+          else
+            RUN_FINISHERS=false
+          fi
+
+          # Construire la commande sync.py (seulement si on la lance)
+          CMD="python scripts/sync.py"
+          if [ -n "$SOURCES" ] && echo "$VALID_SYNC_SOURCES" | grep -qw "$SOURCES"; then
+            CMD="$CMD --sources $SOURCES"
+          fi
           if [ -n "${{ github.event.inputs.year }}" ]; then
             CMD="$CMD --year ${{ github.event.inputs.year }}"
           fi
-
-          # Dry run
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             CMD="$CMD --dry-run"
           fi
 
-          echo "cmd=$CMD" >> $GITHUB_OUTPUT
-          echo "Commande : $CMD"
+          echo "run_sync=$RUN_SYNC"       >> $GITHUB_OUTPUT
+          echo "run_mr=$RUN_MR"           >> $GITHUB_OUTPUT
+          echo "run_finishers=$RUN_FINISHERS" >> $GITHUB_OUTPUT
+          echo "sync_cmd=$CMD"            >> $GITHUB_OUTPUT
 
-      - name: Run sync
+          echo "Plan: sync.py=$RUN_SYNC | milesrepublic=$RUN_MR | finishers=$RUN_FINISHERS"
+          echo "Commande sync.py: $CMD"
+
+      - name: Run sync (fftri / opentri / ironman / les_chronos)
+        if: steps.plan.outputs.run_sync == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: ${{ steps.build_cmd.outputs.cmd }}
+        run: ${{ steps.plan.outputs.sync_cmd }}
+
+      - name: Detect and queue new races from MilesRepublic
+        if: steps.plan.outputs.run_mr == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python scripts/sync_new_races.py --limit 100
+        continue-on-error: true
+
+      - name: Detect and queue new races from Finishers
+        if: steps.plan.outputs.run_finishers == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python scripts/sync_new_races_finishers.py --limit 100
+        continue-on-error: true
 
       - name: Upload logs on failure
         if: failure()
