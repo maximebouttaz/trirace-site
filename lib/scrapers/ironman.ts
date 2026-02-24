@@ -531,14 +531,29 @@ function extractRegistrationDeadlineFromHtml(html: string): string | null {
 
 function detectSwimType(html: string): SwimType {
   const lower = html.toLowerCase()
-  // Rivière — includes() pour éviter les problèmes de word boundary dans le HTML
-  if (lower.includes('river') || lower.includes('rivière') || lower.includes('riviere') || lower.includes('fleuve')) return 'rivière'
-  // Lac
+
+  // Étape 1 : recherche contextuelle par proximité
+  // Pour chaque occurrence de "swim", on analyse les 250 chars suivants dans le HTML brut.
+  // Ça fonctionne même si "Swim" est un titre h3 et le type d'eau est dans un <p> suivant,
+  // car les balises HTML sont transparentes pour cette analyse.
+  // L'ordre des checks (river avant lac avant sea) détermine la priorité.
+  const swimRe = /swim(?:ming|s)?\b/g
+  let m: RegExpExecArray | null
+  while ((m = swimRe.exec(lower)) !== null) {
+    const ctx = lower.slice(m.index, m.index + 250)
+    if (/\b(?:river|rivière|riviere|fleuve|canal)\b/.test(ctx)) return 'rivière'
+    if (/\b(?:ocean|mediterranean|atlantic|pacific|marina|harbor|harbour)\b/.test(ctx)) return 'mer'
+    if (/\b(?:sea|bay)\b/.test(ctx)) return 'mer'
+    if (/\b(?:lake|reservoir|étang|etang)\b/.test(ctx) || / lac /.test(ctx)) return 'lac'
+    if (/\bpool\b/.test(ctx) || /\bpiscine\b/.test(ctx)) return 'piscine'
+  }
+
+  // Étape 2 : fallback sur mots-clés isolés (sans 'river' seul — trop de faux positifs géographiques)
+  if (lower.includes('rivière') || lower.includes('riviere') || lower.includes('fleuve')) return 'rivière'
   if (lower.includes('lake') || lower.includes(' lac ') || lower.includes('>lac<') || lower.includes('reservoir')) return 'lac'
-  // Mer / océan — éviter "commerce", "seamless" etc.
   if (lower.includes('ocean') || lower.includes(' sea ') || lower.includes('>sea<') || lower.includes(' mer ') || lower.includes('>mer<')) return 'mer'
-  // Piscine
   if (lower.includes('pool') || lower.includes('piscine')) return 'piscine'
+
   return 'open water'
 }
 
