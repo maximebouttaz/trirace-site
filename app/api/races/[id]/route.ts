@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
-
-function toNumberOrNull(val: unknown): number | null {
-  if (val === '' || val === null || val === undefined) return null
-  const n = Number(val)
-  return isNaN(n) ? null : n
-}
+import { supabase } from '@/lib/supabase'
+import { toNumberOrNull } from '@/lib/validators'
 
 interface RouteContext {
   params: Promise<{ id: string }>
+}
+
+export async function GET(_request: NextRequest, context: RouteContext) {
+  const { id } = await context.params
+  const raceId = Number(id)
+  if (!raceId || isNaN(raceId)) {
+    return NextResponse.json({ error: 'ID invalide.' }, { status: 400 })
+  }
+
+  const { data, error } = await supabase
+    .from('races')
+    .select('*')
+    .eq('id', raceId)
+    .single()
+
+  if (error || !data) {
+    return NextResponse.json({ error: 'Course introuvable.' }, { status: 404 })
+  }
+
+  return NextResponse.json(data)
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
@@ -63,6 +79,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     time_limit_hours: toNumberOrNull(body.time_limit_hours),
     description: body.description ? String(body.description).trim() || null : null,
     website_url: body.website_url ? String(body.website_url).trim() || null : null,
+    image_url: body.image_url ? String(body.image_url).trim() || null : null,
     status: body.status ? String(body.status) : 'pending',
     location: `${(city as string).trim()}, ${body.country ? String(body.country).trim() || 'France' : 'France'}`,
     updated_at: new Date().toISOString(),

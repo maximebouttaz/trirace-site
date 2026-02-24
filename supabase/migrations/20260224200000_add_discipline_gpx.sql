@@ -1,0 +1,4 @@
+ALTER TABLE public.races
+  ADD COLUMN IF NOT EXISTS swim_gpx_url TEXT,
+  ADD COLUMN IF NOT EXISTS bike_gpx_url TEXT,
+  ADD COLUMN IF NOT EXISTS run_gpx_url  TEXT;

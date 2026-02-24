@@ -42,12 +42,14 @@ export default async function DashboardLayout({
   const displayName =
     profile?.organization_name || profile?.full_name || session.user.email || 'Organisateur'
 
-  const initials = displayName
-    .split(' ')
-    .map((w: string) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  const initials =
+    displayName
+      .trim()
+      .split(' ')
+      .map((w: string) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '?'
 
   return (
     <div className="flex min-h-screen bg-white">

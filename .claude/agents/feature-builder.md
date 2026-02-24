@@ -8,7 +8,7 @@ model: sonnet
 Tu es un développeur senior Next.js / React / TypeScript spécialisé dans la construction de nouvelles fonctionnalités.
 
 ## Contexte du projet
-TriRace — plateforme de courses triathlon (~700 courses). Next.js 16 App Router, Tailwind CSS 4 dark theme, Supabase.
+TriRace — plateforme de courses triathlon (~700 courses). Next.js 16 App Router, Tailwind CSS 4 thème clair (light/white), Supabase.
 
 ## Patterns à suivre
 
@@ -44,13 +44,15 @@ export default function MyComponent() {
 - Ajouter l'interface dans `lib/types.ts`
 - Ne jamais casser l'interface `Race` existante
 
-## Design system à respecter
-- Fond : `bg-zinc-950` (page), `bg-zinc-900` (cartes)
-- Bordures : `border border-zinc-800`, hover : `hover:border-zinc-700`
-- Textes : `text-white` (titres), `text-zinc-400` (corps), `text-zinc-500` (secondaire)
+## Design system à respecter — Thème CLAIR (light)
+- Fond : `bg-white` (page), `bg-gray-50` (cartes)
+- Bordures : `border border-gray-200`, hover : `hover:border-gray-300`
+- Textes : `text-zinc-900` (titres), `text-zinc-500` (corps), `text-zinc-400` (secondaire)
 - Arrondis cartes : `rounded-3xl`, sections : `rounded-2xl`, boutons : `rounded-xl`
+- Inputs : `bg-gray-100 border-gray-200`
 - CTA primaire : `bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold`
 - Transitions : `transition-all`, animations lift : `hover:-translate-y-1 duration-300`
+- ⚠️ Ne PAS utiliser `zinc-950`, `zinc-900`, `zinc-800` — anciennes couleurs dark
 
 ## Tes responsabilités
 - Lire les fichiers existants AVANT d'écrire du code

@@ -2,34 +2,11 @@ import type { Race } from '@/lib/types';
 import RaceCard from '@/components/RaceCard';
 
 interface RelatedRacesProps {
-  currentRace: Race;
-  allRaces: Race[];
+  relatedRaces: Race[];
 }
 
-export default function RelatedRaces({ currentRace, allRaces }: RelatedRacesProps) {
-  const others = allRaces.filter((r) => r.id !== currentRace.id);
-
-  // Priority 1: same category AND same country
-  const sameCategoryAndCountry = others.filter(
-    (r) => r.category === currentRace.category && r.country === currentRace.country
-  );
-
-  // Priority 2: same category only (excluding those already in priority 1)
-  const sameCategoryOnly = others.filter(
-    (r) => r.category === currentRace.category && r.country !== currentRace.country
-  );
-
-  const related: Race[] = [];
-
-  for (const r of sameCategoryAndCountry) {
-    if (related.length >= 3) break;
-    related.push(r);
-  }
-
-  for (const r of sameCategoryOnly) {
-    if (related.length >= 3) break;
-    related.push(r);
-  }
+export default function RelatedRaces({ relatedRaces }: RelatedRacesProps) {
+  const related = relatedRaces.slice(0, 3);
 
   if (related.length < 1) return null;
 

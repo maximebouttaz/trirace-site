@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { CompareProvider } from '@/lib/compare-context';
 import './globals.css';
 
 const geistSans = Geist({
@@ -26,6 +27,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fr_FR',
     siteName: 'TriRace',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'TriRace — Trouve ta prochaine course triathlon',
+      },
+    ],
   },
 };
 
@@ -39,9 +48,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-zinc-900`}
       >
-        <Header />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
+        <CompareProvider>
+          <Header />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
+        </CompareProvider>
       </body>
     </html>
   );

@@ -1,7 +1,6 @@
 import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tri-race.com';
+import { SITE_URL } from '@/lib/config';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: races } = await supabase.from('races').select('slug, date');
@@ -25,6 +24,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date().toISOString(),
       changeFrequency: 'weekly',
       priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/carte`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/comparateur`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
     },
     ...raceEntries,
   ];

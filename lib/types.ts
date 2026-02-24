@@ -25,6 +25,7 @@ export interface Race {
   description: string | null;
   tagline: string | null;
   image_gradient: string | null;
+  image_url: string | null;
   avg_temp_celsius: number | null;
   avg_water_temp_celsius: number | null;
   avg_wind_kmh: number | null;
@@ -33,4 +34,40 @@ export interface Race {
   tags: string[] | null;
   website_url: string | null;
   finishers_url: string | null;
+  // — Nouveaux champs triathlete —
+  swim_type: 'lac' | 'mer' | 'rivière' | 'piscine' | 'étang' | 'open water' | null;
+  bike_type: 'route' | 'gravel' | 'mixte' | 'vtt' | null;
+  is_wetsuit_allowed: boolean | null;
+  is_draft_legal: boolean | null;
+  registration_deadline: string | null;
+  label: string | null;
+  organizer_name: string | null;
+  finishers_count: number | null;
+  qualification_for: string | null;
+  formats: Array<{
+    name: string;
+    discipline: string;
+    category: string;
+    swim: number | null;
+    bike: number | null;
+    run: number | null;
+    total: number | null;
+    price: number | null;
+    elevation: number | null;
+    date: string | null;
+    is_relay: boolean;
+  }> | null;
+  swim_cutoff_minutes: number | null;
+  bike_cutoff_minutes: number | null;
+  run_cutoff_minutes: number | null;
+  needs_review: boolean | null;
+  sync_source: string | null;
+  is_sold_out: boolean | null;
+  // GPX / parcours — structure par segment (accepte aussi l'ancien format plat pour compat)
+  track_geojson: Record<string, unknown> | null;
+  elevation_profile: Record<string, unknown> | Array<{ distance: number; elevation: number }> | null;
+  gpx_url: string | null;
+  swim_gpx_url: string | null;
+  bike_gpx_url: string | null;
+  run_gpx_url: string | null;
 }
