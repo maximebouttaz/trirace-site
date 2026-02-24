@@ -726,8 +726,8 @@ function parseCourseHtml(html: string): CoursePageResult {
 
   if (!html) return result
 
-  // swim_type — priorité absolue : "Swim River" / "Swim Lake" (titres de section Ironman)
-  // Ces patterns correspondent aux titres comme "Swim River Allier" ou "Swim Lake X"
+  // swim_type — priorité 1 : titre de section "Swim River" / "Swim Lake" sur la même ligne (Ironman)
+  // Fonctionne quand le mot est immédiatement après "swim" dans le texte brut
   const swimSectionMatch = html.match(/\bswim\s+(river|rivière|riviere|fleuve|canal|lake|lac|reservoir|sea|ocean|mer|bay|pool|piscine|etang|étang)\b/i)
   if (swimSectionMatch) {
     const sw = swimSectionMatch[1].toLowerCase()
@@ -740,24 +740,10 @@ function parseCourseHtml(html: string): CoursePageResult {
     } else if (['pool', 'piscine'].includes(sw)) {
       result.swim_type = 'piscine'
     }
-  } else {
-    // Fallback : "swimming in the X" (chercher rivière avant lac pour éviter faux positifs)
-    const swimInMatch = html.match(/swim(?:ming)?\s+in\s+(?:the\s+)?(\w+(?:\s+\w+)?)/i)
-    if (swimInMatch) {
-      const swimEnv = swimInMatch[1].toLowerCase()
-      if (swimEnv.includes('river') || swimEnv.includes('canal') || swimEnv.includes('fleuve')) {
-        result.swim_type = 'rivière'
-      } else if (swimEnv.includes('lake') || swimEnv.includes('lac') || swimEnv.includes('reservoir')) {
-        result.swim_type = 'lac'
-      } else if (swimEnv.includes('sea') || swimEnv.includes('ocean') || swimEnv.includes('mer') || swimEnv.includes('bay')) {
-        result.swim_type = 'mer'
-      } else if (swimEnv.includes('pool') || swimEnv.includes('piscine')) {
-        result.swim_type = 'piscine'
-      }
-    }
   }
 
-  // Fallback final swim_type via detectSwimType
+  // Priorité 2 : detectSwimType sur l'intégralité du HTML de la page /course
+  // Cherche 'river' avant 'lake' — évite le faux positif "Lac d'Allier" quand "River Allier" est aussi présent
   if (result.swim_type === null) {
     const detected = detectSwimType(html)
     if (detected !== 'open water') result.swim_type = detected
@@ -1113,8 +1099,10 @@ export function scrapeIronman(
     result.registration_deadline = extractRegistrationDeadlineFromHtml(htmlMain)
   }
 
-  // swim_type : détection dynamique depuis le HTML (écrase le défaut 'open water')
-  result.swim_type = detectSwimType(htmlMain)
+  // swim_type : combiner toutes les pages disponibles pour maximiser la détection
+  // 'river' est cherché en priorité absolue sur TOUTES les pages avant de concéder 'lac'
+  const allHtmlForSwim = [htmlMain, htmlCourse, htmlGuide].filter(Boolean).join('\n')
+  result.swim_type = detectSwimType(allHtmlForSwim)
 
   // Température de l'eau depuis la page principale
   result.avg_water_temp_celsius = extractWaterTemp(htmlMain)
@@ -1159,7 +1147,10 @@ export function scrapeIronman(
   // 5. Merge page /course — override swim_type, ajoute dénivelé, GPX
   if (htmlCourse) {
     const course = parseCourseHtml(htmlCourse)
-    if (course.swim_type !== null) result.swim_type = course.swim_type
+    // Ne pas rétrograder 'rivière' → 'lac' : la détection combinée a déjà trouvé 'rivière'
+    if (course.swim_type !== null && !(result.swim_type === 'rivière' && course.swim_type === 'lac')) {
+      result.swim_type = course.swim_type
+    }
     if (course.bike_elevation !== null) result.bike_elevation = course.bike_elevation
     if (course.run_elevation !== null) result.run_elevation = course.run_elevation
     if (course.gpx_url !== null) result.gpx_url = course.gpx_url
