@@ -10,7 +10,6 @@ import {
   List,
   ClipboardList,
   History,
-  Wrench,
   Map,
   Trash2,
   LogOut,
@@ -29,7 +28,6 @@ const NAV_LINKS = [
   { href: '/admin/races', label: 'Courses', icon: List },
   { href: '/admin/sync', label: 'Validation courses', icon: ClipboardList },
   { href: '/admin/audit', label: 'Historique', icon: History },
-  { href: '/admin/incomplete', label: 'Courses incomplètes', icon: Wrench },
   { href: '/admin/map', label: 'Carte GPS', icon: Map },
   { href: '/admin/deleted', label: 'Corbeille', icon: Trash2 },
 ];
