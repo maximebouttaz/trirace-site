@@ -5,6 +5,7 @@ interface RaceRow {
   id: number
   name: string
   city: string
+  website_url: string | null
 }
 
 interface DuplicateCandidate {
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
 
   const { data: pendingRaces } = await supabase
     .from('races')
-    .select('id, name, city')
+    .select('id, name, city, website_url')
     .in('id', ids)
     .returns<RaceRow[]>()
 
@@ -62,10 +63,30 @@ export async function GET(req: NextRequest) {
 
   await Promise.all(
     pendingRaces.map(async (race) => {
+      // Priority 1: exact website_url match (most reliable)
+      if (race.website_url) {
+        const { data: byUrl } = await supabase
+          .from('races')
+          .select('id, name, slug')
+          .eq('website_url', race.website_url)
+          .eq('needs_review', false)
+          .is('deleted_at', null)
+          .not('id', 'in', `(${ids.join(',')})`)
+          .limit(1)
+          .maybeSingle<DuplicateCandidate>()
+
+        if (byUrl) {
+          result[race.id] = { possible_duplicate: byUrl }
+          return
+        }
+      }
+
+      // Priority 2: city exact + name ilike (fallback)
       const { data: duplicates } = await supabase
         .from('races')
         .select('id, name, slug')
         .eq('needs_review', false)
+        .is('deleted_at', null)
         .eq('city', race.city)
         .ilike('name', `%${race.name}%`)
         .not('id', 'in', `(${ids.join(',')})`)
