@@ -165,5 +165,28 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Auto-géocodage si city présent mais coordonnées absentes
+  if (result.city && (!result.latitude || !result.longitude)) {
+    try {
+      const query = `${result.city}, ${result.country || 'France'}`
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
+        {
+          headers: { 'User-Agent': 'TriRace/1.0 admin-scraper' },
+          signal: AbortSignal.timeout(5000),
+        }
+      )
+      if (geoRes.ok) {
+        const geoData = await geoRes.json()
+        if (geoData?.[0]) {
+          result.latitude = parseFloat(geoData[0].lat)
+          result.longitude = parseFloat(geoData[0].lon)
+        }
+      }
+    } catch {
+      // Géocodage échoué → on continue sans coordonnées
+    }
+  }
+
   return NextResponse.json(result)
 }

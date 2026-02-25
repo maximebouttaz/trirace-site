@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { MapPin, Loader2, AlertCircle, Sparkles } from 'lucide-react'
 
 export interface AdminRaceFormData {
@@ -155,7 +155,41 @@ export default function AdminRaceForm({
   const [errors, setErrors] = useState<Partial<Record<keyof AdminRaceFormData, string>>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [geocoding, setGeocoding] = useState(false)
+  const [isGeocoding, setIsGeocoding] = useState(false)
   const [generatingDesc, setGeneratingDesc] = useState(false)
+
+  useEffect(() => {
+    if (form.latitude && form.longitude) return
+    if (!form.city || form.city.trim().length < 3) return
+
+    const timer = setTimeout(async () => {
+      setIsGeocoding(true)
+      try {
+        const query = `${form.city.trim()}, ${form.country || 'France'}`
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
+          { headers: { 'User-Agent': 'TriRace/1.0 admin-form' } }
+        )
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.[0]) {
+            setForm(prev => ({
+              ...prev,
+              latitude: String(data[0].lat),
+              longitude: String(data[0].lon),
+            }))
+          }
+        }
+      } catch {
+        // Silencieux
+      } finally {
+        setIsGeocoding(false)
+      }
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.city, form.country])
 
   function set(field: keyof AdminRaceFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -431,21 +465,39 @@ export default function AdminRaceForm({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
-            <FieldLabel label="Latitude" field="latitude" />
+            <label className={labelClass}>
+              {geocoding || isGeocoding ? (
+                <span className="inline-flex items-center gap-1">
+                  Latitude
+                  <span className="ml-1 text-xs text-blue-500 animate-pulse">Geocodage...</span>
+                </span>
+              ) : (
+                'Latitude'
+              )}
+            </label>
             <input type="number" step="any" className={inputClass} value={form.latitude} onChange={(e) => set('latitude', e.target.value)} placeholder="43.7102" />
           </div>
           <div>
-            <FieldLabel label="Longitude" field="longitude" />
+            <label className={labelClass}>
+              {geocoding || isGeocoding ? (
+                <span className="inline-flex items-center gap-1">
+                  Longitude
+                  <span className="ml-1 text-xs text-blue-500 animate-pulse">Geocodage...</span>
+                </span>
+              ) : (
+                'Longitude'
+              )}
+            </label>
             <input type="number" step="any" className={inputClass} value={form.longitude} onChange={(e) => set('longitude', e.target.value)} placeholder="7.2620" />
           </div>
           <div>
             <button
               type="button"
               onClick={handleGeocode}
-              disabled={geocoding || !form.city.trim()}
+              disabled={geocoding || isGeocoding || !form.city.trim()}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-50 text-violet-700 text-sm font-medium hover:bg-violet-100 disabled:opacity-50 transition-colors"
             >
-              {geocoding ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
+              {geocoding || isGeocoding ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
               Geocoder
             </button>
           </div>
