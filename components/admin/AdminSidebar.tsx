@@ -7,6 +7,7 @@ import {
   Trophy,
   LayoutDashboard,
   PlusCircle,
+  List,
   ClipboardList,
   History,
   Wrench,
@@ -25,6 +26,7 @@ interface AdminSidebarProps {
 const NAV_LINKS = [
   { href: '/admin', label: 'Vue d\'ensemble', icon: LayoutDashboard },
   { href: '/admin/new', label: 'Ajouter une course', icon: PlusCircle },
+  { href: '/admin/races', label: 'Courses', icon: List },
   { href: '/admin/sync', label: 'Validation courses', icon: ClipboardList },
   { href: '/admin/audit', label: 'Historique', icon: History },
   { href: '/admin/incomplete', label: 'Courses incomplètes', icon: Wrench },
