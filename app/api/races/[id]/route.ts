@@ -67,7 +67,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     city: (city as string).trim(),
     department: body.department ? String(body.department).trim() || null : null,
     region: body.region ? String(body.region).trim() || null : null,
-    country: body.country ? String(body.country).trim() || 'France' : 'France',
+    country: body.country ? String(body.country).trim() || null : null,
     category: category as string,
     discipline: body.discipline ? String(body.discipline).trim() || 'triathlon' : 'triathlon',
     swim_distance: toNumberOrNull(body.swim_distance),
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     website_url: body.website_url ? String(body.website_url).trim() || null : null,
     image_url: body.image_url ? String(body.image_url).trim() || null : null,
     status: body.status ? String(body.status) : 'pending',
-    location: `${(city as string).trim()}, ${body.country ? String(body.country).trim() || 'France' : 'France'}`,
+    location: `${(city as string).trim()}, ${body.country ? String(body.country).trim() : ''}`.replace(/, $/, ''),
     updated_at: new Date().toISOString(),
   }
 

@@ -176,7 +176,16 @@ function extractFromJsonLd(html: string): JsonLdResult {
       continue
     }
 
-    const items: unknown[] = isArray(data) ? data : [data]
+    const rawItems: unknown[] = isArray(data) ? data : [data]
+    // Dépaqueter @graph (format utilisé par Ironman : {"@context":"...", "@graph":[...]})
+    const items: unknown[] = []
+    for (const raw of rawItems) {
+      if (isRecord(raw) && isArray(raw['@graph'])) {
+        items.push(...(raw['@graph'] as unknown[]))
+      } else {
+        items.push(raw)
+      }
+    }
     for (const item of items) {
       if (!isRecord(item)) continue
       const ev = item as JsonLdEvent
@@ -213,7 +222,14 @@ function extractFromJsonLd(html: string): JsonLdResult {
           const addr = loc.address as JsonLdAddress
           if (result.city === null) result.city = toStr(addr.addressLocality)
           if (result.region === null) result.region = toStr(addr.addressRegion)
-          if (result.country === null) result.country = toStr(addr.addressCountry)
+          if (result.country === null) {
+            const rawCountry = addr.addressCountry
+            if (typeof rawCountry === 'string') {
+              result.country = toStr(rawCountry)
+            } else if (isRecord(rawCountry) && typeof (rawCountry as Record<string, unknown>).name === 'string') {
+              result.country = toStr((rawCountry as Record<string, unknown>).name)
+            }
+          }
         }
 
         if (isRecord(loc.geo)) {

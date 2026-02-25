@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
     city: (city as string).trim(),
     department: body.department ? String(body.department).trim() || null : null,
     region: body.region ? String(body.region).trim() || null : null,
-    country: body.country ? String(body.country).trim() || 'France' : 'France',
+    country: body.country ? String(body.country).trim() || null : null,
     category: category as string,
     discipline: body.discipline ? String(body.discipline).trim() || 'triathlon' : 'triathlon',
     swim_distance: toNumberOrNull(body.swim_distance),
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
     slug,
     organizer_id: session.user.id,
     status: 'pending',
-    location: `${(city as string).trim()}, ${body.country ? String(body.country).trim() || 'France' : 'France'}`,
+    location: `${(city as string).trim()}, ${body.country ? String(body.country).trim() : ''}`.replace(/, $/, ''),
   }
 
   const { data: race, error } = await supabaseServer
