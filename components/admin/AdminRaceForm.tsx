@@ -52,6 +52,7 @@ export interface AdminRaceFormData {
   bike_gpx_url: string
   run_gpx_url: string
   is_sold_out: string
+  registration_status: string
 }
 
 export const EMPTY_FORM_DATA: AdminRaceFormData = {
@@ -103,6 +104,7 @@ export const EMPTY_FORM_DATA: AdminRaceFormData = {
   bike_gpx_url: '',
   run_gpx_url: '',
   is_sold_out: '',
+  registration_status: '',
 }
 
 interface AdminRaceFormProps {
@@ -570,15 +572,21 @@ export default function AdminRaceForm({
             />
             Drafting autorise
           </label>
-          <label className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.is_sold_out === 'true'}
-              onChange={(e) => set('is_sold_out', e.target.checked ? 'true' : '')}
-              className="rounded border-gray-300 text-violet-600 focus:ring-violet-400"
-            />
-            Complet (sold out)
-          </label>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              Statut inscription
+            </label>
+            <select
+              value={form.registration_status}
+              onChange={(e) => set('registration_status', e.target.value)}
+              className="px-3 py-2 rounded-xl bg-gray-100 border border-gray-200 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-400"
+            >
+              <option value="">Inconnu</option>
+              <option value="open">Ouvert</option>
+              <option value="sold_out">Sold Out</option>
+              <option value="closed">Ferme</option>
+            </select>
+          </div>
         </div>
       </section>
 

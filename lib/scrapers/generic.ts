@@ -567,6 +567,7 @@ export function scrapeGeneric(url: string, html: string): ScrapedFields {
     avg_temp_celsius: null,
     avg_wind_kmh: null,
     is_sold_out: null,
+    registration_status: null,
     track_geojson: null,
     elevation_profile: null,
   }

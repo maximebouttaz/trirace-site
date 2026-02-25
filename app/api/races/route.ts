@@ -226,6 +226,7 @@ export async function POST(request: NextRequest) {
     description: body.description ? String(body.description).trim() || null : null,
     website_url: body.website_url ? String(body.website_url).trim() || null : null,
     image_url: body.image_url ? String(body.image_url).trim() || null : null,
+    registration_status: body.registration_status ? String(body.registration_status) || null : null,
     slug,
     organizer_id: session.user.id,
     status: 'pending',

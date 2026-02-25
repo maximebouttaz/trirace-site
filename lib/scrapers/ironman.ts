@@ -756,6 +756,7 @@ function emptyFields(url: string, format: IronmanFormat): ScrapedFields {
     avg_temp_celsius: null,
     avg_wind_kmh: null,
     is_sold_out: null,
+    registration_status: null,
     track_geojson: null,
     elevation_profile: null,
   }
@@ -900,6 +901,7 @@ function parseCourseHtml(html: string): CoursePageResult {
 interface RegisterPageResult {
   price_euros: number | null
   is_sold_out: boolean | null
+  registration_status: string | null
   registration_deadline: string | null
   max_participants: number | null
 }
@@ -908,31 +910,47 @@ function parseRegisterHtml(html: string): RegisterPageResult {
   const result: RegisterPageResult = {
     price_euros: null,
     is_sold_out: null,
+    registration_status: null,
     registration_deadline: null,
     max_participants: null,
   }
 
   if (!html) return result
 
-  // Prix — prendre le plus bas (early bird)
-  const pricePattern = /(?:€|EUR)\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*(?:€|EUR)/gi
-  const foundPrices: number[] = []
-  let priceMatch: RegExpExecArray | null
-  while ((priceMatch = pricePattern.exec(html)) !== null) {
-    const raw = priceMatch[1] ?? priceMatch[2]
-    const price = toNum(raw)
-    if (price !== null && price >= 50 && price <= 2000) {
-      foundPrices.push(price)
+  // Prix — chercher d'abord "General Entry: X EUR" (prix de base, pas early bird ni relay)
+  const generalEntryMatch = html.match(/General Entry[:\s]+(\d+[\.,]\d+)\s*(EUR|USD)/i)
+  if (generalEntryMatch) {
+    const generalEntryPattern = /General Entry[:\s]+(\d+[\.,]\d+)\s*(EUR|USD)/gi
+    const entryPrices: number[] = []
+    let gem: RegExpExecArray | null
+    while ((gem = generalEntryPattern.exec(html)) !== null) {
+      const p = toNum(gem[1])
+      if (p !== null && p >= 50 && p <= 2000) entryPrices.push(p)
     }
-  }
-  if (foundPrices.length > 0) {
-    result.price_euros = Math.round(Math.min(...foundPrices))
+    if (entryPrices.length > 0) result.price_euros = Math.round(Math.min(...entryPrices))
+  } else {
+    // Fallback : minimum des prix EUR entre 50 et 2000
+    const pricePattern = /(?:€|EUR)\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*(?:€|EUR)/gi
+    const foundPrices: number[] = []
+    let priceMatch: RegExpExecArray | null
+    while ((priceMatch = pricePattern.exec(html)) !== null) {
+      const raw = priceMatch[1] ?? priceMatch[2]
+      const price = toNum(raw)
+      if (price !== null && price >= 50 && price <= 2000) foundPrices.push(price)
+    }
+    if (foundPrices.length > 0) result.price_euros = Math.round(Math.min(...foundPrices))
   }
 
-  // Sold out (plus fiable sur la page inscription)
-  const soldOutPattern = /sold\s+out|registration\s+sold\s+out|no\s+longer\s+available|inscriptions?\s+(?:ferm[ée]es?|compl[eè]tes?)/i
-  if (soldOutPattern.test(html)) {
+  // Statut d'inscription — détecter depuis les textes Registration Open/Closed/Sold Out
+  if (/registration\s+sold\s*out/i.test(html)) {
+    result.registration_status = 'sold_out'
     result.is_sold_out = true
+  } else if (/registration\s+closed/i.test(html)) {
+    result.registration_status = 'closed'
+    result.is_sold_out = false
+  } else if (/registration\s+open/i.test(html)) {
+    result.registration_status = 'open'
+    result.is_sold_out = false
   }
 
   // Date limite d'inscription
@@ -1258,10 +1276,11 @@ export function scrapeIronman(
     if (course.run_cutoff_minutes !== null) result.run_cutoff_minutes = course.run_cutoff_minutes
   }
 
-  // 6. Merge page /register — prix réel, sold out, participants
+  // 6. Merge page /register — prix réel, sold out, statut inscription, participants
   if (htmlRegister) {
     const reg = parseRegisterHtml(htmlRegister)
     if (reg.price_euros !== null) result.price_euros = reg.price_euros
+    if (reg.registration_status !== null) result.registration_status = reg.registration_status
     if (reg.is_sold_out !== null) result.is_sold_out = reg.is_sold_out
     if (reg.registration_deadline !== null) result.registration_deadline = reg.registration_deadline
     if (reg.max_participants !== null) result.max_participants = reg.max_participants

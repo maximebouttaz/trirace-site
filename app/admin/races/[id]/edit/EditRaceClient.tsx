@@ -66,6 +66,7 @@ function raceToFormData(race: Race): Partial<AdminRaceFormData> {
     bike_gpx_url: race.bike_gpx_url ?? '',
     run_gpx_url: race.run_gpx_url ?? '',
     is_sold_out: race.is_sold_out != null ? String(race.is_sold_out) : '',
+    registration_status: race.registration_status ?? '',
   }
 }
 

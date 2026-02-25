@@ -231,9 +231,14 @@ export default async function RaceDetailPage({
                   {r.label}
                 </span>
               )}
-              {r.is_sold_out && (
+              {(r.is_sold_out || r.registration_status === 'sold_out') && (
                 <span className="bg-red-500/90 backdrop-blur-sm text-white border border-red-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  Complet
+                  Sold Out
+                </span>
+              )}
+              {r.registration_status === 'closed' && !r.is_sold_out && (
+                <span className="bg-zinc-600/90 backdrop-blur-sm text-white border border-zinc-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
+                  Inscriptions fermees
                 </span>
               )}
             </div>
