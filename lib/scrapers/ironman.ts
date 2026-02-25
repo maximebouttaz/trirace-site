@@ -193,7 +193,14 @@ function extractFromJsonLd(html: string): JsonLdResult {
       if (type !== 'SportsEvent' && type !== 'Event') continue
 
       if (result.name === null) result.name = toStr(ev.name)
-      if (result.date === null) result.date = toStr(ev.startDate)
+      if (result.date === null) {
+        const rawDate = toStr(ev.startDate)
+        if (rawDate) {
+          // Normaliser en YYYY-MM-DD (ex: "2025-11-02T00:00:00+0000" → "2025-11-02")
+          const dateMatch = rawDate.match(/(\d{4}-\d{2}-\d{2})/)
+          result.date = dateMatch ? dateMatch[1] : rawDate
+        }
+      }
 
       if (result.description === null) {
         const desc = toStr(ev.description)
@@ -917,20 +924,20 @@ function parseRegisterHtml(html: string): RegisterPageResult {
 
   if (!html) return result
 
-  // Prix — chercher d'abord "General Entry: X EUR" (prix de base, pas early bird ni relay)
-  const generalEntryMatch = html.match(/General Entry[:\s]+(\d+[\.,]\d+)\s*(EUR|USD)/i)
-  if (generalEntryMatch) {
-    const generalEntryPattern = /General Entry[:\s]+(\d+[\.,]\d+)\s*(EUR|USD)/gi
-    const entryPrices: number[] = []
-    let gem: RegExpExecArray | null
-    while ((gem = generalEntryPattern.exec(html)) !== null) {
-      const p = toNum(gem[1])
-      if (p !== null && p >= 50 && p <= 2000) entryPrices.push(p)
-    }
-    if (entryPrices.length > 0) result.price_euros = Math.round(Math.min(...entryPrices))
+  // Prix — chercher d'abord "General Entry: X EUR/USD" ou "General Entry: $X"
+  // Gère : "General Entry: 387.50 EUR", "General Entry: $472.70 USD", "General Entry: $472.70"
+  const generalEntryPattern = /General Entry[:\s]+\$?(\d+[\.,]\d+)\s*(EUR|USD)?/gi
+  const entryPrices: number[] = []
+  let gem: RegExpExecArray | null
+  while ((gem = generalEntryPattern.exec(html)) !== null) {
+    const p = toNum(gem[1])
+    if (p !== null && p >= 50 && p <= 2000) entryPrices.push(p)
+  }
+  if (entryPrices.length > 0) {
+    result.price_euros = Math.round(Math.min(...entryPrices))
   } else {
-    // Fallback : minimum des prix EUR entre 50 et 2000
-    const pricePattern = /(?:€|EUR)\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*(?:€|EUR)/gi
+    // Fallback : minimum des prix EUR/USD/$ entre 50 et 2000
+    const pricePattern = /(?:€|EUR|\$|USD)\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*(?:€|EUR|USD)/gi
     const foundPrices: number[] = []
     let priceMatch: RegExpExecArray | null
     while ((priceMatch = pricePattern.exec(html)) !== null) {
@@ -942,13 +949,14 @@ function parseRegisterHtml(html: string): RegisterPageResult {
   }
 
   // Statut d'inscription — détecter depuis les textes Registration Open/Closed/Sold Out
-  if (/registration\s+sold\s*out/i.test(html)) {
+  // Gère aussi : "Registration is Open", "Register Now" (→ open), tag CSS "tag--green"/"tag--black"
+  if (/registration\s+sold\s*out|sold\s*out/i.test(html)) {
     result.registration_status = 'sold_out'
     result.is_sold_out = true
-  } else if (/registration\s+closed/i.test(html)) {
+  } else if (/registration\s+(?:is\s+)?closed|registrations?\s+closed/i.test(html)) {
     result.registration_status = 'closed'
     result.is_sold_out = false
-  } else if (/registration\s+open/i.test(html)) {
+  } else if (/registration\s+(?:is\s+)?open|registrations?\s+(?:is\s+)?open|register\s+now/i.test(html)) {
     result.registration_status = 'open'
     result.is_sold_out = false
   }
