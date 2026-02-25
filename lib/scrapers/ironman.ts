@@ -725,6 +725,10 @@ interface CoursePageResult {
   bike_gpx_url: string | null
   run_gpx_url: string | null
   description: string | null
+  // Cutoffs — présents sur la page /course chez Ironman (pas sur /athletes-guide)
+  swim_cutoff_minutes: number | null
+  bike_cutoff_minutes: number | null
+  run_cutoff_minutes: number | null
 }
 
 function parseCourseHtml(html: string): CoursePageResult {
@@ -737,6 +741,9 @@ function parseCourseHtml(html: string): CoursePageResult {
     bike_gpx_url: null,
     run_gpx_url: null,
     description: null,
+    swim_cutoff_minutes: null,
+    bike_cutoff_minutes: null,
+    run_cutoff_minutes: null,
   }
 
   if (!html) return result
@@ -810,6 +817,29 @@ function parseCourseHtml(html: string): CoursePageResult {
   if (ogDescMatch && ogDescMatch[1].length > 20) {
     result.description = ogDescMatch[1].slice(0, 1000)
   }
+
+  // Cutoffs — Ironman place ces infos sur /course avec des balises HTML avec CSS inline massif
+  // Format HTML réel : "Cut off time (Swim):</strong></span>...[~600 chars CSS]...<span>1h10</span>"
+  // On utilise une regex multilignes qui saute les balises entre le label et la valeur
+  const cutoffExtract = (pattern: RegExp): number | null => {
+    const m = html.match(pattern)
+    if (!m) return null
+    const minutes = parseTimeToMinutes(m[1])
+    return minutes !== null && minutes > 0 ? minutes : null
+  }
+
+  // Swim seul
+  result.swim_cutoff_minutes = cutoffExtract(
+    /cut[\s\-]*off\s*time\s*\(\s*swim\s*\)[\s\S]{1,2000}?(\d+h\d{2})/i
+  )
+  // Swim+Bike cumulatif — valeur stockée telle quelle (ex: 5h50 = 350 min)
+  result.bike_cutoff_minutes = cutoffExtract(
+    /cut[\s\-]*off\s*time\s*\(\s*swim\s*\+\s*bike\s*\)[\s\S]{1,2000}?(\d+h\d{2})/i
+  )
+  // Total Swim+Bike+Run — valeur totale (ex: 8h30 = 510 min)
+  result.run_cutoff_minutes = cutoffExtract(
+    /cut[\s\-]*off\s*time\s*\(\s*swim\s*\+\s*bike\s*\+\s*run\s*\)[\s\S]{1,2000}?(\d+h\d{2})/i
+  )
 
   return result
 }
@@ -1173,6 +1203,10 @@ export function scrapeIronman(
     if (course.bike_gpx_url !== null) result.bike_gpx_url = course.bike_gpx_url
     if (course.run_gpx_url !== null) result.run_gpx_url = course.run_gpx_url
     if (result.description === null && course.description !== null) result.description = course.description
+    // Cutoffs depuis /course (priorité sur les valeurs par défaut du format)
+    if (course.swim_cutoff_minutes !== null) result.swim_cutoff_minutes = course.swim_cutoff_minutes
+    if (course.bike_cutoff_minutes !== null) result.bike_cutoff_minutes = course.bike_cutoff_minutes
+    if (course.run_cutoff_minutes !== null) result.run_cutoff_minutes = course.run_cutoff_minutes
   }
 
   // 6. Merge page /register — prix réel, sold out, participants
