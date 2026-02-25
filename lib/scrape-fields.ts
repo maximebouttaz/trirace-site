@@ -62,7 +62,6 @@ export interface ScrapedFields {
   avg_wind_kmh: number | null
 
   // Statut
-  is_sold_out: boolean | null
   registration_status: string | null
 
   // Parsed GPX data — populated automatically during scraping, not shown in form UI
@@ -132,6 +131,5 @@ export const SCRAPABLE_FIELD_META = [
   { key: 'avg_temp_celsius', label: 'Temp. air (°C)' },
   { key: 'avg_wind_kmh', label: 'Vent moyen (km/h)' },
   // Statut
-  { key: 'is_sold_out', label: 'Complet (sold out)' },
   { key: 'registration_status', label: 'Statut inscription' },
 ] as const

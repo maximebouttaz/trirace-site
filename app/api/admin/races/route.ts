@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     bike_type: body.bike_type ? String(body.bike_type).trim() || null : null,
     is_wetsuit_allowed: body.is_wetsuit_allowed === true ? true : body.is_wetsuit_allowed === false ? false : null,
     is_draft_legal: body.is_draft_legal === true ? true : body.is_draft_legal === false ? false : null,
-    is_sold_out: body.is_sold_out === true || body.is_sold_out === 'true' ? true : null,
+    registration_status: body.registration_status ? String(body.registration_status) || null : null,
     label: body.label ? String(body.label).trim() || null : null,
     organizer_name: body.organizer_name ? String(body.organizer_name).trim() || null : null,
     registration_deadline: body.registration_deadline ? String(body.registration_deadline).trim() || null : null,

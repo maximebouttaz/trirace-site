@@ -673,9 +673,9 @@ function extractWaterTemp(html: string): number | null {
 // Détection sold out depuis le HTML
 // ---------------------------------------------------------------------------
 
-function extractSoldOut(html: string): boolean | null {
+function extractSoldOut(html: string): string | null {
   const pattern = /(?:registration\s+)?sold\s+out|inscriptions?\s+(?:ferm[ée]es?|compl[eè]tes?)|(?:^|\s)complet(?:\s|$)/i
-  if (pattern.test(html)) return true
+  if (pattern.test(html)) return 'sold_out'
   return null
 }
 
@@ -762,7 +762,6 @@ function emptyFields(url: string, format: IronmanFormat): ScrapedFields {
     avg_water_temp_celsius: null,
     avg_temp_celsius: null,
     avg_wind_kmh: null,
-    is_sold_out: null,
     registration_status: null,
     track_geojson: null,
     elevation_profile: null,
@@ -907,7 +906,6 @@ function parseCourseHtml(html: string): CoursePageResult {
 
 interface RegisterPageResult {
   price_euros: number | null
-  is_sold_out: boolean | null
   registration_status: string | null
   registration_deadline: string | null
   max_participants: number | null
@@ -916,7 +914,6 @@ interface RegisterPageResult {
 function parseRegisterHtml(html: string): RegisterPageResult {
   const result: RegisterPageResult = {
     price_euros: null,
-    is_sold_out: null,
     registration_status: null,
     registration_deadline: null,
     max_participants: null,
@@ -952,13 +949,10 @@ function parseRegisterHtml(html: string): RegisterPageResult {
   // Gère aussi : "Registration is Open", "Register Now" (→ open), tag CSS "tag--green"/"tag--black"
   if (/registration\s+sold\s*out|sold\s*out/i.test(html)) {
     result.registration_status = 'sold_out'
-    result.is_sold_out = true
   } else if (/registration\s+(?:is\s+)?closed|registrations?\s+closed/i.test(html)) {
     result.registration_status = 'closed'
-    result.is_sold_out = false
   } else if (/registration\s+(?:is\s+)?open|registrations?\s+(?:is\s+)?open|register\s+now/i.test(html)) {
     result.registration_status = 'open'
-    result.is_sold_out = false
   }
 
   // Date limite d'inscription
@@ -1228,7 +1222,8 @@ export function scrapeIronman(
   result.avg_water_temp_celsius = extractWaterTemp(htmlMain)
 
   // Statut sold out depuis la page principale
-  result.is_sold_out = extractSoldOut(htmlMain)
+  const soldOutStatus = extractSoldOut(htmlMain)
+  if (soldOutStatus) result.registration_status = soldOutStatus
 
   // og:image fallback
   if (result.image_url === null) {
@@ -1289,7 +1284,6 @@ export function scrapeIronman(
     const reg = parseRegisterHtml(htmlRegister)
     if (reg.price_euros !== null) result.price_euros = reg.price_euros
     if (reg.registration_status !== null) result.registration_status = reg.registration_status
-    if (reg.is_sold_out !== null) result.is_sold_out = reg.is_sold_out
     if (reg.registration_deadline !== null) result.registration_deadline = reg.registration_deadline
     if (reg.max_participants !== null) result.max_participants = reg.max_participants
   }

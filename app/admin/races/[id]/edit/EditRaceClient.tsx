@@ -65,7 +65,6 @@ function raceToFormData(race: Race): Partial<AdminRaceFormData> {
     swim_gpx_url: race.swim_gpx_url ?? '',
     bike_gpx_url: race.bike_gpx_url ?? '',
     run_gpx_url: race.run_gpx_url ?? '',
-    is_sold_out: race.is_sold_out != null ? String(race.is_sold_out) : '',
     registration_status: race.registration_status ?? '',
   }
 }
@@ -120,7 +119,11 @@ export default function EditRaceClient({ race }: Props) {
         : null
     payload.is_draft_legal =
       data.is_draft_legal === 'true' ? true : data.is_draft_legal === 'false' ? false : null
-    payload.is_sold_out = data.is_sold_out === 'true' ? true : null
+
+    // Tags : convertir la string CSV en tableau
+    if (typeof payload.tags === 'string') {
+      payload.tags = payload.tags ? payload.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : null
+    }
 
     // Remove empty strings -> null
     for (const key of Object.keys(payload)) {

@@ -11,7 +11,7 @@ const ALLOWED_FIELDS = new Set([
   'record_men', 'record_women', 'finishers_url', 'finishers_count',
   'organizer_name', 'label', 'track_geojson', 'elevation_profile',
   'gpx_url', 'swim_gpx_url', 'bike_gpx_url', 'run_gpx_url',
-  'swim_type', 'bike_type', 'is_wetsuit_allowed', 'is_draft_legal', 'is_sold_out',
+  'swim_type', 'bike_type', 'is_wetsuit_allowed', 'is_draft_legal',
   'registration_status', 'registration_deadline', 'qualification_for', 'tags',
   'swim_cutoff_minutes', 'bike_cutoff_minutes', 'run_cutoff_minutes',
   'needs_review', 'status',
@@ -57,8 +57,13 @@ export async function PATCH(
   // Only allow whitelisted fields
   const patch: Record<string, unknown> = {}
   for (const [key, val] of Object.entries(body)) {
-    if (ALLOWED_FIELDS.has(key)) {
-      patch[key] = val === '' ? null : val
+    if (!ALLOWED_FIELDS.has(key)) continue
+    if (val === '') { patch[key] = null; continue }
+    // Tags : convertir CSV → tableau si besoin
+    if (key === 'tags' && typeof val === 'string') {
+      patch[key] = val ? val.split(',').map((t) => t.trim()).filter(Boolean) : null
+    } else {
+      patch[key] = val
     }
   }
 

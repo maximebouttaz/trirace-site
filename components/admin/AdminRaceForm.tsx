@@ -51,7 +51,6 @@ export interface AdminRaceFormData {
   swim_gpx_url: string
   bike_gpx_url: string
   run_gpx_url: string
-  is_sold_out: string
   registration_status: string
 }
 
@@ -103,7 +102,6 @@ export const EMPTY_FORM_DATA: AdminRaceFormData = {
   swim_gpx_url: '',
   bike_gpx_url: '',
   run_gpx_url: '',
-  is_sold_out: '',
   registration_status: '',
 }
 

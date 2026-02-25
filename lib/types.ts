@@ -62,7 +62,6 @@ export interface Race {
   run_cutoff_minutes: number | null;
   needs_review: boolean | null;
   sync_source: string | null;
-  is_sold_out: boolean | null;
   registration_status: string | null;
   // GPX / parcours — structure par segment (accepte aussi l'ancien format plat pour compat)
   track_geojson: Record<string, unknown> | null;

@@ -566,7 +566,6 @@ export function scrapeGeneric(url: string, html: string): ScrapedFields {
     avg_water_temp_celsius: null,
     avg_temp_celsius: null,
     avg_wind_kmh: null,
-    is_sold_out: null,
     registration_status: null,
     track_geojson: null,
     elevation_profile: null,
@@ -830,7 +829,7 @@ export function scrapeGeneric(url: string, html: string): ScrapedFields {
 
   // Sold out
   const soldOutMatch = text.match(/(?:registration\s+)?sold\s+out|inscriptions?\s+(?:ferm[ée]es?|compl[eè]tes?)/i)
-  if (soldOutMatch) result.is_sold_out = true
+  if (soldOutMatch) result.registration_status = 'sold_out'
 
   return result
 }
