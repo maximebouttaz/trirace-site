@@ -63,6 +63,10 @@ export interface ScrapedFields {
 
   // Statut
   is_sold_out: boolean | null
+
+  // Parsed GPX data — populated automatically during scraping, not shown in form UI
+  track_geojson: Record<string, unknown> | null
+  elevation_profile: Record<string, unknown> | null
 }
 
 export interface ConflictItem {

@@ -13,19 +13,26 @@ export default function NewRaceClient() {
   const [formData, setFormData] = useState<Partial<AdminRaceFormData>>({})
   const [scrapedFields, setScrapedFields] = useState<Set<string>>(new Set())
   const [scraperDone, setScraperDone] = useState(false)
+  const [gpxData, setGpxData] = useState<{ track_geojson?: Record<string, unknown>; elevation_profile?: Record<string, unknown> }>({})
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState<{ slug: string; id: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleMergedData = useCallback(
     (data: Partial<ScrapedFields>, keys: Set<string>) => {
-      // Convert ScrapedFields to form data (strings)
+      // Convert ScrapedFields to form data (strings), extracting non-string fields separately
       const partial: Partial<AdminRaceFormData> = {}
+      const NON_STRING_FIELDS = ['track_geojson', 'elevation_profile']
+      const newGpxData: { track_geojson?: Record<string, unknown>; elevation_profile?: Record<string, unknown> } = {}
       for (const [k, v] of Object.entries(data)) {
-        if (v != null) {
-          (partial as Record<string, string>)[k] = String(v)
+        if (v == null) continue
+        if (NON_STRING_FIELDS.includes(k)) {
+          newGpxData[k as 'track_geojson' | 'elevation_profile'] = v as Record<string, unknown>
+          continue
         }
+        (partial as Record<string, string>)[k] = String(v)
       }
+      setGpxData(newGpxData)
       setFormData(partial)
       setScrapedFields(keys)
       setScraperDone(true)
@@ -48,6 +55,10 @@ export default function NewRaceClient() {
     for (const key of Object.keys(payload)) {
       if (payload[key] === '') payload[key] = null
     }
+
+    // Attach GPX data if available (not part of the form, stored separately)
+    if (gpxData.track_geojson) payload.track_geojson = gpxData.track_geojson
+    if (gpxData.elevation_profile) payload.elevation_profile = gpxData.elevation_profile
 
     try {
       const res = await fetch('/api/admin/races', {

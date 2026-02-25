@@ -137,6 +137,18 @@ export default function MultiUrlScraper({ onMergedData }: MultiUrlScraperProps) 
       }
     }
 
+    // Pass through non-displayable object fields (GPX data) from first successful source
+    const firstSuccess = successEntries[0]
+    if (firstSuccess?.data) {
+      const hiddenFields = ['track_geojson', 'elevation_profile'] as const
+      for (const field of hiddenFields) {
+        const val = (firstSuccess.data as unknown as Record<string, unknown>)[field]
+        if (val != null) {
+          ;(merged as Record<string, unknown>)[field] = val
+        }
+      }
+    }
+
     setMergedPreview(merged)
     setConflicts(newConflicts)
     setPhase('resolving')

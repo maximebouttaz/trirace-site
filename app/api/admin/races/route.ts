@@ -138,6 +138,8 @@ export async function POST(request: NextRequest) {
     swim_gpx_url: body.swim_gpx_url ? String(body.swim_gpx_url).trim() || null : null,
     bike_gpx_url: body.bike_gpx_url ? String(body.bike_gpx_url).trim() || null : null,
     run_gpx_url: body.run_gpx_url ? String(body.run_gpx_url).trim() || null : null,
+    track_geojson: body.track_geojson && typeof body.track_geojson === 'object' ? body.track_geojson : null,
+    elevation_profile: body.elevation_profile && typeof body.elevation_profile === 'object' ? body.elevation_profile : null,
     slug,
     location: `${cityStr}, ${countryStr}`,
     organizer_id: session.user.id,

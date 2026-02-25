@@ -6,6 +6,7 @@ import { scrapeFinishers } from '@/lib/scrapers/finishers'
 import { scrapeMilesRepublic } from '@/lib/scrapers/milesrepublic'
 import { scrapeIronman } from '@/lib/scrapers/ironman'
 import { scrapeGeneric } from '@/lib/scrapers/generic'
+import { parseGPX } from '@/lib/gpx-parser'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -45,8 +46,10 @@ function extractIronmanSlug(url: string): string {
 
 // ---------------------------------------------------------------------------
 // Route POST — scraping à la demande (admin uniquement)
-// Timeout global augmenté à 20s pour laisser le temps aux 4 fetches parallèles
+// Timeout global augmenté à 60s pour laisser le temps aux fetches parallèles + GPX
 // ---------------------------------------------------------------------------
+
+export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -98,6 +101,43 @@ export async function POST(req: NextRequest) {
     }
 
     result = scrapeIronman(url, htmlMain, htmlCourse, htmlRegister, htmlGuide)
+
+    // Download and parse GPX files in parallel
+    const gpxEntries = [
+      { key: 'swim', url: result.swim_gpx_url },
+      { key: 'bike', url: result.bike_gpx_url },
+      { key: 'run', url: result.run_gpx_url },
+    ].filter((g): g is { key: string; url: string } => g.url != null)
+
+    if (gpxEntries.length > 0) {
+      const gpxTexts = await Promise.allSettled(
+        gpxEntries.map(async ({ url: gpxUrl }) => {
+          const r = await fetch(gpxUrl, { signal: AbortSignal.timeout(15000) })
+          if (!r.ok) throw new Error(`${r.status}`)
+          return r.text()
+        })
+      )
+
+      const trackSeg: Record<string, unknown> = {}
+      const elevSeg: Record<string, unknown> = {}
+
+      for (let i = 0; i < gpxEntries.length; i++) {
+        const textResult = gpxTexts[i]
+        if (textResult.status === 'rejected') continue
+        try {
+          const { trackGeoJSON, elevationProfile } = parseGPX(textResult.value)
+          trackSeg[gpxEntries[i].key] = trackGeoJSON
+          elevSeg[gpxEntries[i].key] = elevationProfile
+        } catch {
+          // ignore parse errors silently
+        }
+      }
+
+      if (Object.keys(trackSeg).length > 0) {
+        result.track_geojson = trackSeg
+        result.elevation_profile = elevSeg
+      }
+    }
   } else {
     // Fetch simple pour les autres sources
     const res = await fetch(url, {

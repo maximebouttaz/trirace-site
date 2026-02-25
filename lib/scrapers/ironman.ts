@@ -720,6 +720,8 @@ function emptyFields(url: string, format: IronmanFormat): ScrapedFields {
     avg_temp_celsius: null,
     avg_wind_kmh: null,
     is_sold_out: null,
+    track_geojson: null,
+    elevation_profile: null,
   }
 }
 
