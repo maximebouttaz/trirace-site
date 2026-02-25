@@ -231,6 +231,11 @@ export default async function RaceDetailPage({
                   {r.label}
                 </span>
               )}
+              {r.is_sold_out && (
+                <span className="bg-red-500/90 backdrop-blur-sm text-white border border-red-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
+                  Complet
+                </span>
+              )}
             </div>
 
             <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-sm">
@@ -340,6 +345,27 @@ export default async function RaceDetailPage({
                       <span>{formatDistance(r.bike_distance)}</span>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* GPX download links */}
+              {(r.swim_gpx_url || r.bike_gpx_url || r.run_gpx_url) && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {r.swim_gpx_url && (
+                    <a href={r.swim_gpx_url} download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition-colors">
+                      <Waves size={12} /> GPX Natation
+                    </a>
+                  )}
+                  {r.bike_gpx_url && (
+                    <a href={r.bike_gpx_url} download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 text-xs font-bold hover:bg-orange-100 transition-colors">
+                      <Bike size={12} /> GPX Velo
+                    </a>
+                  )}
+                  {r.run_gpx_url && (
+                    <a href={r.run_gpx_url} download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 transition-colors">
+                      <Activity size={12} /> GPX Course
+                    </a>
+                  )}
                 </div>
               )}
 

@@ -41,8 +41,8 @@ export default function NewRaceClient() {
     const payload: Record<string, unknown> = { ...data }
 
     // Booleans
-    payload.is_wetsuit_allowed = data.is_wetsuit_allowed === 'true' ? true : null
-    payload.is_draft_legal = data.is_draft_legal === 'true' ? true : null
+    payload.is_wetsuit_allowed = data.is_wetsuit_allowed === 'true' ? true : data.is_wetsuit_allowed === 'false' ? false : null
+    payload.is_draft_legal = data.is_draft_legal === 'true' ? true : data.is_draft_legal === 'false' ? false : null
 
     // Remove empty strings
     for (const key of Object.keys(payload)) {

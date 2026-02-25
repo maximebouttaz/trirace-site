@@ -4,11 +4,17 @@ import { createClient } from '@/lib/supabase-server'
 const ALLOWED_FIELDS = new Set([
   'name', 'city', 'country', 'date', 'category', 'region', 'department',
   'description', 'tagline', 'website_url', 'price_euros', 'swim_distance',
-  'bike_distance', 'run_distance', 'total_elevation', 'latitude', 'longitude',
-  'image_url', 'discipline', 'max_participants', 'time_limit_hours',
+  'bike_distance', 'run_distance', 'total_elevation', 'bike_elevation', 'run_elevation',
+  'latitude', 'longitude', 'image_url', 'image_gradient', 'discipline',
+  'max_participants', 'time_limit_hours',
   'avg_temp_celsius', 'avg_water_temp_celsius', 'avg_wind_kmh',
-  'record_men', 'record_women', 'finishers_url', 'organizer_name', 'label',
-  'track_geojson', 'elevation_profile', 'gpx_url',
+  'record_men', 'record_women', 'finishers_url', 'finishers_count',
+  'organizer_name', 'label', 'track_geojson', 'elevation_profile',
+  'gpx_url', 'swim_gpx_url', 'bike_gpx_url', 'run_gpx_url',
+  'swim_type', 'bike_type', 'is_wetsuit_allowed', 'is_draft_legal', 'is_sold_out',
+  'registration_deadline', 'qualification_for', 'tags',
+  'swim_cutoff_minutes', 'bike_cutoff_minutes', 'run_cutoff_minutes',
+  'needs_review', 'status',
 ])
 
 export async function PATCH(
