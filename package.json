@@ -12,6 +12,7 @@
     "seed:clear": "npx tsx scripts/seed.ts --clear"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@mapbox/togeojson": "^0.16.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",

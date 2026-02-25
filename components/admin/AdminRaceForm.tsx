@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { MapPin, Loader2, AlertCircle } from 'lucide-react'
+import { MapPin, Loader2, AlertCircle, Sparkles } from 'lucide-react'
 
 export interface AdminRaceFormData {
   name: string
@@ -157,6 +157,7 @@ export default function AdminRaceForm({
   const [errors, setErrors] = useState<Partial<Record<keyof AdminRaceFormData, string>>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [geocoding, setGeocoding] = useState(false)
+  const [generatingDesc, setGeneratingDesc] = useState(false)
 
   function set(field: keyof AdminRaceFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -215,6 +216,25 @@ export default function AdminRaceForm({
       // ignore
     } finally {
       setGeocoding(false)
+    }
+  }
+
+  async function handleGenerateDescription() {
+    setGeneratingDesc(true)
+    try {
+      const res = await fetch('/api/admin/generate-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) {
+        const { description } = await res.json()
+        if (description) set('description', description)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setGeneratingDesc(false)
     }
   }
 
@@ -369,7 +389,7 @@ export default function AdminRaceForm({
             <input type="number" className={inputClass} value={form.finishers_count} onChange={(e) => set('finishers_count', e.target.value)} placeholder="1200" />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div data-field="website_url">
             <FieldLabel label="Site web" field="website_url" />
             <input type="text" className={inputClass} value={form.website_url} onChange={(e) => set('website_url', e.target.value)} placeholder="https://..." />
@@ -379,6 +399,21 @@ export default function AdminRaceForm({
             <FieldLabel label="URL resultats" field="finishers_url" />
             <input type="text" className={inputClass} value={form.finishers_url} onChange={(e) => set('finishers_url', e.target.value)} placeholder="https://..." />
             <ErrorMsg field="finishers_url" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">
+              Statut inscription
+            </label>
+            <select
+              value={form.registration_status}
+              onChange={(e) => set('registration_status', e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Inconnu</option>
+              <option value="open">Ouvert</option>
+              <option value="sold_out">Sold Out</option>
+              <option value="closed">Ferme</option>
+            </select>
           </div>
         </div>
       </section>
@@ -428,13 +463,29 @@ export default function AdminRaceForm({
           <p className="text-xs text-zinc-400 mt-1">Citation courte affichee en italique sur la page course</p>
         </div>
         <div>
-          <FieldLabel label="Description" field="description" />
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-sm font-medium text-zinc-700">Description</label>
+            <button
+              type="button"
+              onClick={handleGenerateDescription}
+              disabled={generatingDesc || !form.name}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 disabled:opacity-40 transition-colors"
+              title={!form.name ? 'Remplissez le nom de la course d\'abord' : 'Générer une description SEO avec IA'}
+            >
+              {generatingDesc
+                ? <Loader2 size={13} className="animate-spin" />
+                : <Sparkles size={13} />
+              }
+              {generatingDesc ? 'Génération…' : 'Générer avec IA'}
+            </button>
+          </div>
           <textarea
             className={`${inputClass} min-h-[120px] resize-y`}
             value={form.description}
             onChange={(e) => set('description', e.target.value)}
             placeholder="Decrivez la course..."
           />
+          <p className="text-xs text-zinc-400 mt-1">Le bouton IA génère ~150 mots en français, optimisés SEO.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -572,21 +623,6 @@ export default function AdminRaceForm({
             />
             Drafting autorise
           </label>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
-              Statut inscription
-            </label>
-            <select
-              value={form.registration_status}
-              onChange={(e) => set('registration_status', e.target.value)}
-              className="px-3 py-2 rounded-xl bg-gray-100 border border-gray-200 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-400"
-            >
-              <option value="">Inconnu</option>
-              <option value="open">Ouvert</option>
-              <option value="sold_out">Sold Out</option>
-              <option value="closed">Ferme</option>
-            </select>
-          </div>
         </div>
       </section>
 
