@@ -368,6 +368,8 @@ function nameFromUrl(url: string, format: IronmanFormat): string | null {
 function toAbsoluteIronmanUrl(url: string | null): string | null {
   if (!url) return null
   if (url.startsWith('http')) return url
+  if (url.startsWith('//')) return `https:${url}`
+  if (url.startsWith('www.')) return `https://${url}`
   if (url.startsWith('/')) return `https://www.ironman.com${url}`
   return url
 }
@@ -406,18 +408,36 @@ function extractDisciplineGpxUrls(html: string): {
 } {
   const result = { swim_gpx_url: null as string | null, bike_gpx_url: null as string | null, run_gpx_url: null as string | null }
 
-  // Chercher des liens avec "swim", "bike", "run" à proximité du href GPX
-  const swimPattern = /(?:swim[^<]{0,200})<a[^>]+href="([^"]*(?:gpx|download)[^"]*)"[^>]*>|<a[^>]+href="([^"]*(?:swim)[^"]*\.gpx[^"]*)"[^>]*>/gi
-  let m = swimPattern.exec(html)
-  if (m) result.swim_gpx_url = m[1] ?? m[2] ?? null
+  // Stratégie principale : texte du lien ("Swim/Bike/Run GPX file")
+  // Invariant quel que soit la langue du nom de fichier (allemand, français…)
+  const swimTextPat = /<a[^>]+href="([^"]*\.gpx[^"]*)"[^>]*>[^<]*swim[^<]*<\/a>/gi
+  let m = swimTextPat.exec(html)
+  if (m) result.swim_gpx_url = m[1]
 
-  const bikePattern = /(?:bike[^<]{0,200})<a[^>]+href="([^"]*(?:gpx|download)[^"]*)"[^>]*>|<a[^>]+href="([^"]*(?:bike|cycling)[^"]*\.gpx[^"]*)"[^>]*>/gi
-  m = bikePattern.exec(html)
-  if (m) result.bike_gpx_url = m[1] ?? m[2] ?? null
+  const bikeTextPat = /<a[^>]+href="([^"]*\.gpx[^"]*)"[^>]*>[^<]*bike[^<]*<\/a>/gi
+  m = bikeTextPat.exec(html)
+  if (m) result.bike_gpx_url = m[1]
 
-  const runPattern = /(?:run[^<]{0,200})<a[^>]+href="([^"]*(?:gpx|download)[^"]*)"[^>]*>|<a[^>]+href="([^"]*(?:run|running)[^"]*\.gpx[^"]*)"[^>]*>/gi
-  m = runPattern.exec(html)
-  if (m) result.run_gpx_url = m[1] ?? m[2] ?? null
+  const runTextPat = /<a[^>]+href="([^"]*\.gpx[^"]*)"[^>]*>[^<]*\brun\b[^<]*<\/a>/gi
+  m = runTextPat.exec(html)
+  if (m) result.run_gpx_url = m[1]
+
+  // Fallback : discipline dans le nom du fichier href
+  if (!result.swim_gpx_url) {
+    const swimHrefPat = /<a[^>]+href="([^"]*(?:swim|natation)[^"]*\.gpx[^"]*)"[^>]*>/gi
+    m = swimHrefPat.exec(html)
+    if (m) result.swim_gpx_url = m[1]
+  }
+  if (!result.bike_gpx_url) {
+    const bikeHrefPat = /<a[^>]+href="([^"]*(?:bike|cycling|velo|v%C3%A9lo|rad)[^"]*\.gpx[^"]*)"[^>]*>/gi
+    m = bikeHrefPat.exec(html)
+    if (m) result.bike_gpx_url = m[1]
+  }
+  if (!result.run_gpx_url) {
+    const runHrefPat = /<a[^>]+href="([^"]*(?:run|lauf)[^"]*\.gpx[^"]*)"[^>]*>/gi
+    m = runHrefPat.exec(html)
+    if (m) result.run_gpx_url = m[1]
+  }
 
   return result
 }
