@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Search, Pencil, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { categoryLabel, categoryColor, formatDate } from '@/lib/utils'
 
 interface RaceRow {
@@ -35,6 +35,18 @@ export default function RacesListClient({ initialRaces, initialTotal }: Props) {
   const [category, setCategory] = useState('')
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  async function handleDelete(race: RaceRow) {
+    if (!confirm(`Supprimer "${race.name}" ?\n\nLa course sera déplacée dans la corbeille.`)) return
+    setDeletingId(race.id)
+    const res = await fetch(`/api/admin/races/${race.id}`, { method: 'DELETE' })
+    setDeletingId(null)
+    if (res.ok) {
+      setRaces((prev) => prev.filter((r) => r.id !== race.id))
+      setTotal((prev) => prev - 1)
+    }
+  }
 
   const fetchRaces = useCallback(async (q: string, cat: string, p: number) => {
     setLoading(true)
@@ -151,13 +163,24 @@ export default function RacesListClient({ initialRaces, initialTotal }: Props) {
                     {race.date ? formatDate(race.date) : '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/admin/races/${race.id}/edit`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 transition-colors"
-                    >
-                      <Pencil size={12} />
-                      Modifier
-                    </Link>
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/admin/races/${race.id}/edit`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 transition-colors"
+                      >
+                        <Pencil size={12} />
+                        Modifier
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(race)}
+                        disabled={deletingId === race.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 disabled:opacity-40 transition-colors"
+                        title="Supprimer (corbeille)"
+                      >
+                        <Trash2 size={12} />
+                        Supprimer
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
