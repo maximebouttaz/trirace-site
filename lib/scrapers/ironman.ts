@@ -362,6 +362,17 @@ function nameFromUrl(url: string, format: IronmanFormat): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Conversion URL relative → absolue (Ironman utilise des chemins /sites/...)
+// ---------------------------------------------------------------------------
+
+function toAbsoluteIronmanUrl(url: string | null): string | null {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  if (url.startsWith('/')) return `https://www.ironman.com${url}`
+  return url
+}
+
+// ---------------------------------------------------------------------------
 // Extraction du lien GPX depuis le HTML
 // ---------------------------------------------------------------------------
 
@@ -1232,6 +1243,12 @@ export function scrapeIronman(
     if (guide.is_wetsuit_allowed !== null) result.is_wetsuit_allowed = guide.is_wetsuit_allowed
     if (guide.qualification_for !== null) result.qualification_for = guide.qualification_for
   }
+
+  // 8. Normaliser les URLs GPX relatives → absolues (Ironman utilise /sites/default/...)
+  result.gpx_url = toAbsoluteIronmanUrl(result.gpx_url)
+  result.swim_gpx_url = toAbsoluteIronmanUrl(result.swim_gpx_url)
+  result.bike_gpx_url = toAbsoluteIronmanUrl(result.bike_gpx_url)
+  result.run_gpx_url = toAbsoluteIronmanUrl(result.run_gpx_url)
 
   return result
 }
