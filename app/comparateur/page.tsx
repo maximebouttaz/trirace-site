@@ -9,11 +9,18 @@ import { supabase } from '@/lib/supabase';
 import type { Race } from '@/lib/types';
 import { formatDistance, formatDate, categoryLabel, categoryColor, formatElevation } from '@/lib/utils';
 
+interface SearchRace {
+  slug: string;
+  name: string;
+  city: string;
+  category: string;
+}
+
 function SlotSearch({
   allRaces,
   onSelect,
 }: {
-  allRaces: Race[];
+  allRaces: SearchRace[];
   onSelect: (slug: string) => void;
 }) {
   const [query, setQuery] = useState('');
@@ -175,7 +182,8 @@ export default function ComparateurPage() {
 function ComparateurContent() {
   const searchParams = useSearchParams();
   const { slugs, addRace, removeRace, clearAll } = useCompare();
-  const [allRaces, setAllRaces] = useState<Race[]>([]);
+  const [selectedRaces, setSelectedRaces] = useState<Race[]>([]);
+  const [searchRaces, setSearchRaces] = useState<SearchRace[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load slugs from URL on mount
@@ -196,22 +204,40 @@ function ComparateurContent() {
     }
   }, [slugs]);
 
+  // Lightweight fetch for search dropdown (name/slug/city/category only)
   useEffect(() => {
-    async function fetchAll() {
+    async function fetchSearchRaces() {
+      const { data } = await supabase
+        .from('races')
+        .select('slug, name, city, category')
+        .order('name');
+      if (data) setSearchRaces(data as SearchRace[]);
+      setLoading(false);
+    }
+    fetchSearchRaces();
+  }, []);
+
+  // Fetch full data only for selected slugs
+  useEffect(() => {
+    if (slugs.length === 0) {
+      setSelectedRaces([]);
+      return;
+    }
+    async function fetchSelected() {
       const { data } = await supabase
         .from('races')
         .select('*')
-        .order('name');
-      if (data) setAllRaces(data as Race[]);
-      setLoading(false);
+        .in('slug', slugs);
+      if (data) {
+        // Preserve the order defined in the compare context
+        const ordered = slugs
+          .map((s) => (data as Race[]).find((r) => r.slug === s))
+          .filter((r): r is Race => !!r);
+        setSelectedRaces(ordered);
+      }
     }
-    fetchAll();
-  }, []);
-
-  const selectedRaces = useMemo(
-    () => slugs.map((s) => allRaces.find((r) => r.slug === s)).filter((r): r is Race => !!r),
-    [slugs, allRaces]
-  );
+    fetchSelected();
+  }, [slugs]);
 
   const emptySlots = 3 - slugs.length;
 
@@ -255,7 +281,7 @@ function ComparateurContent() {
               </div>
               {!loading && (
                 <SlotSearch
-                  allRaces={allRaces.filter((r) => !slugs.includes(r.slug))}
+                  allRaces={searchRaces.filter((r) => !slugs.includes(r.slug))}
                   onSelect={addRace}
                 />
               )}

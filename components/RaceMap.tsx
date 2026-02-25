@@ -7,7 +7,6 @@ import type { Race } from '@/lib/types';
 import { formatDistance, formatDate, categoryLabel, categoryHexColor } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 

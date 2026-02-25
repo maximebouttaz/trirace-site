@@ -22,10 +22,17 @@ export default function CalendrierPage() {
 
   useEffect(() => {
     async function fetchRaces() {
+      const dateFrom = new Date();
+      dateFrom.setMonth(dateFrom.getMonth() - 6);
+      const dateTo = new Date();
+      dateTo.setMonth(dateTo.getMonth() + 12);
+
       const { data } = await supabase
         .from('races')
         .select('id, slug, name, date, city, country, category, total_distance, image_gradient')
         .not('date', 'is', null)
+        .gte('date', dateFrom.toISOString().split('T')[0])
+        .lte('date', dateTo.toISOString().split('T')[0])
         .order('date', { ascending: true });
       if (data) setRaces(data as Race[]);
       setLoading(false);

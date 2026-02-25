@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -17,6 +18,15 @@ import RelatedRaces from '@/components/RelatedRaces';
 import RaceGPXSection from '@/components/RaceGPXSection';
 import FormatSelector from '@/components/FormatSelector';
 
+const fetchRace = cache(async (slug: string) => {
+  const { data } = await supabase
+    .from('races')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+  return data as Race | null;
+});
+
 // --- SSG ---
 export async function generateStaticParams() {
   const { data } = await supabase.from('races').select('slug');
@@ -33,11 +43,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const { data: race } = await supabase
-    .from('races')
-    .select('name, city, country, category, swim_distance, bike_distance, run_distance, description, tagline, image_url')
-    .eq('slug', slug)
-    .single();
+  const race = await fetchRace(slug);
 
   if (!race) return { title: 'Course introuvable' };
 
@@ -68,15 +74,9 @@ export default async function RaceDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { data: race } = await supabase
-    .from('races')
-    .select('*')
-    .eq('slug', slug)
-    .single();
+  const r = await fetchRace(slug);
 
-  if (!race) notFound();
-
-  const r = race as Race;
+  if (!r) notFound();
 
   const RELATED_COLS = 'id, slug, name, date, city, country, category, swim_distance, bike_distance, run_distance, total_distance, total_elevation, price_euros, image_gradient, image_url, tags';
 
@@ -231,14 +231,19 @@ export default async function RaceDetailPage({
                   {r.label}
                 </span>
               )}
-              {(r.is_sold_out || r.registration_status === 'sold_out') && (
+              {r.registration_status === 'sold_out' && (
                 <span className="bg-red-500/90 backdrop-blur-sm text-white border border-red-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  Sold Out
+                  Complet
                 </span>
               )}
-              {r.registration_status === 'closed' && !r.is_sold_out && (
+              {r.registration_status === 'closed' && (
                 <span className="bg-zinc-600/90 backdrop-blur-sm text-white border border-zinc-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  Inscriptions fermees
+                  Inscriptions fermées
+                </span>
+              )}
+              {r.registration_status === 'open' && (
+                <span className="bg-emerald-500/90 backdrop-blur-sm text-white border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
+                  Inscriptions ouvertes
                 </span>
               )}
             </div>

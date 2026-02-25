@@ -71,12 +71,14 @@ function Pagination({
   total,
   pageSize,
   onPageChange,
+  loading,
 }: {
   page: number;
   totalPages: number;
   total: number;
   pageSize: number;
   onPageChange: (p: number) => void;
+  loading?: boolean;
 }) {
   if (totalPages <= 1) return null;
 
@@ -104,7 +106,7 @@ function Pagination({
       <div className="flex items-center gap-1">
         <button
           onClick={() => onPageChange(page - 1)}
-          disabled={page === 1}
+          disabled={page === 1 || loading}
           aria-label="Page précédente"
           className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-zinc-500 hover:border-gray-300 hover:text-zinc-900 transition disabled:opacity-30 disabled:cursor-not-allowed"
         >
@@ -115,7 +117,8 @@ function Pagination({
           <>
             <button
               onClick={() => onPageChange(1)}
-              className="w-8 h-8 rounded-lg border border-gray-200 text-sm font-semibold text-zinc-600 hover:border-gray-300 hover:text-zinc-900 transition"
+              disabled={loading}
+              className="w-8 h-8 rounded-lg border border-gray-200 text-sm font-semibold text-zinc-600 hover:border-gray-300 hover:text-zinc-900 transition disabled:opacity-30 disabled:cursor-not-allowed"
             >
               1
             </button>
@@ -127,10 +130,11 @@ function Pagination({
           <button
             key={p}
             onClick={() => onPageChange(p)}
-            className={`w-8 h-8 rounded-lg border text-sm font-semibold transition ${
+            disabled={loading}
+            className={`w-8 h-8 rounded-lg border text-sm font-semibold transition disabled:cursor-not-allowed ${
               p === page
-                ? 'bg-zinc-900 border-zinc-900 text-white'
-                : 'border-gray-200 text-zinc-600 hover:border-gray-300 hover:text-zinc-900'
+                ? 'bg-zinc-900 border-zinc-900 text-white disabled:opacity-70'
+                : 'border-gray-200 text-zinc-600 hover:border-gray-300 hover:text-zinc-900 disabled:opacity-30'
             }`}
           >
             {p}
@@ -142,7 +146,8 @@ function Pagination({
             {end < totalPages - 1 && <span className="px-1 text-zinc-400 text-sm select-none">…</span>}
             <button
               onClick={() => onPageChange(totalPages)}
-              className="w-8 h-8 rounded-lg border border-gray-200 text-sm font-semibold text-zinc-600 hover:border-gray-300 hover:text-zinc-900 transition"
+              disabled={loading}
+              className="w-8 h-8 rounded-lg border border-gray-200 text-sm font-semibold text-zinc-600 hover:border-gray-300 hover:text-zinc-900 transition disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {totalPages}
             </button>
@@ -151,7 +156,7 @@ function Pagination({
 
         <button
           onClick={() => onPageChange(page + 1)}
-          disabled={page === totalPages}
+          disabled={page === totalPages || loading}
           aria-label="Page suivante"
           className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-zinc-500 hover:border-gray-300 hover:text-zinc-900 transition disabled:opacity-30 disabled:cursor-not-allowed"
         >
@@ -247,6 +252,8 @@ function CoursesContent() {
 
   // Fetch paginated list — triggers on debounced filter OR page OR sort change
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchList() {
       setLoading(true);
       setError(false);
@@ -255,42 +262,60 @@ function CoursesContent() {
       params.set('page', String(page));
       params.set('limit', String(PAGE_SIZE));
 
-      const res = await fetch(`/api/races?${params.toString()}`);
-      if (!res.ok) {
+      try {
+        const res = await fetch(`/api/races?${params.toString()}`, { signal: controller.signal });
+        if (!res.ok) {
+          setError(true);
+          setLoading(false);
+          return;
+        }
+
+        const json = await res.json();
+
+        if (Array.isArray(json)) {
+          setRaces(json as Race[]);
+          setTotal(json.length);
+          setTotalPages(1);
+        } else {
+          setRaces((json.data ?? []) as Race[]);
+          setTotal(json.total ?? 0);
+          setTotalPages(json.totalPages ?? 1);
+        }
+
+        setLoading(false);
+        scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        console.error(err);
         setError(true);
         setLoading(false);
-        return;
       }
-
-      const json = await res.json();
-
-      if (Array.isArray(json)) {
-        setRaces(json as Race[]);
-        setTotal(json.length);
-        setTotalPages(1);
-      } else {
-        setRaces((json.data ?? []) as Race[]);
-        setTotal(json.total ?? 0);
-        setTotalPages(json.totalPages ?? 1);
-      }
-
-      setLoading(false);
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
     fetchList();
+    return () => controller.abort();
   }, [activeCategory, debouncedAdvanced, page, debouncedSearch, sort]);
 
   // Fetch geo races — uses debounced filters, no pagination, no sort
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchGeo() {
       const params = buildFilterParams(activeCategory, debouncedAdvanced, debouncedSearch);
       params.set('geo', 'true');
-      const res = await fetch(`/api/races?${params.toString()}`);
-      if (!res.ok) return;
-      const json = await res.json();
-      setGeoRaces(Array.isArray(json) ? (json as Race[]) : ((json.data ?? []) as Race[]));
+      try {
+        const res = await fetch(`/api/races?${params.toString()}`, { signal: controller.signal });
+        if (!res.ok) return;
+        const json = await res.json();
+        setGeoRaces(Array.isArray(json) ? (json as Race[]) : ((json.data ?? []) as Race[]));
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        console.error(err);
+      }
     }
+
     fetchGeo();
+    return () => controller.abort();
   }, [activeCategory, debouncedAdvanced, debouncedSearch]);
 
   // Reset page to 1 when filters change
@@ -313,6 +338,10 @@ function CoursesContent() {
     setAdvanced(DEFAULT_ADVANCED);
     setDebouncedAdvanced(DEFAULT_ADVANCED); // skip debounce for instant clear
     setPage(1);
+  }, []);
+
+  const handleRaceHover = useCallback((slug: string) => {
+    setFocusSlug(slug);
   }, []);
 
   // Extract unique regions from geo set (full filtered set, not just current page)
@@ -403,11 +432,12 @@ function CoursesContent() {
   ) : (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filtered.map((race) => (
+        {filtered.map((race, index) => (
           <RaceCard
             key={race.id}
             race={race}
-            onMouseEnter={() => setFocusSlug(race.slug)}
+            priority={index < 4}
+            onMouseEnter={() => handleRaceHover(race.slug)}
           />
         ))}
       </div>
@@ -417,6 +447,7 @@ function CoursesContent() {
         total={total}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
+        loading={loading}
       />
     </>
   );

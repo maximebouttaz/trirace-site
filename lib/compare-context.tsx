@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
 
 interface CompareContextValue {
   slugs: string[];
@@ -36,10 +36,17 @@ export function CompareProvider({ children }: { children: ReactNode }) {
     [slugs]
   );
 
+  const value = useMemo(() => ({
+    slugs,
+    addRace,
+    removeRace,
+    clearAll,
+    isSelected,
+    isFull: slugs.length >= MAX_COMPARE,
+  }), [slugs, addRace, removeRace, clearAll, isSelected]);
+
   return (
-    <CompareContext.Provider
-      value={{ slugs, addRace, removeRace, clearAll, isSelected, isFull: slugs.length >= MAX_COMPARE }}
-    >
+    <CompareContext.Provider value={value}>
       {children}
     </CompareContext.Provider>
   );

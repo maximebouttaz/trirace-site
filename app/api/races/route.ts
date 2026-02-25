@@ -12,7 +12,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
   ironman: ['Ironman'],
 }
 
-const LIST_COLS = 'id, slug, name, date, city, country, region, department, category, swim_distance, bike_distance, run_distance, total_distance, total_elevation, bike_elevation, price_euros, max_participants, time_limit_hours, image_gradient, image_url, tags, avg_temp_celsius, avg_water_temp_celsius, swim_type, is_wetsuit_allowed, label, qualification_for, finishers_count, registration_deadline, formats, latitude, longitude'
+const LIST_COLS = 'id, slug, name, date, city, country, region, department, category, discipline, swim_distance, bike_distance, run_distance, total_distance, total_elevation, bike_elevation, price_euros, max_participants, time_limit_hours, image_gradient, image_url, tags, avg_temp_celsius, avg_water_temp_celsius, swim_type, is_wetsuit_allowed, label, qualification_for, finishers_count, registration_deadline, registration_status, formats, latitude, longitude'
 const GEO_COLS = 'slug, name, city, country, region, department, category, date, latitude, longitude'
 
 const DEFAULT_PAGE_SIZE = 24
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors du chargement des courses.' }, { status: 500 })
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(data, { headers: { 'Cache-Control': 'public, s-maxage=43200, stale-while-revalidate=86400' } })
   }
 
   // --- PAGINATED MODE ---
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
   const total = count ?? 0
   const totalPages = Math.ceil(total / limit)
 
-  return NextResponse.json({ data: data ?? [], total, page, totalPages })
+  return NextResponse.json({ data: data ?? [], total, page, totalPages }, { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } })
 }
 
 function makeSlug(name: string, city: string, year: number): string {

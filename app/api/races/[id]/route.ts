@@ -16,7 +16,25 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
   const { data, error } = await supabase
     .from('races')
-    .select('*')
+    .select(`
+      id, slug, name, date, location, city, department, region, country,
+      latitude, longitude,
+      discipline, category,
+      swim_distance, bike_distance, run_distance, total_distance,
+      bike_elevation, run_elevation, total_elevation,
+      price_euros, max_participants, time_limit_hours,
+      description, tagline, image_gradient, image_url,
+      avg_temp_celsius, avg_water_temp_celsius, avg_wind_kmh,
+      record_men, record_women,
+      tags, website_url, finishers_url,
+      swim_type, bike_type, is_wetsuit_allowed, is_draft_legal,
+      registration_deadline, label, organizer_name, finishers_count,
+      qualification_for, formats,
+      swim_cutoff_minutes, bike_cutoff_minutes, run_cutoff_minutes,
+      registration_status,
+      track_geojson, elevation_profile,
+      swim_gpx_url, bike_gpx_url, run_gpx_url
+    `)
     .eq('id', raceId)
     .single()
 
@@ -24,7 +42,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Course introuvable.' }, { status: 404 })
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data, { headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800' } })
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
@@ -80,6 +98,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     description: body.description ? String(body.description).trim() || null : null,
     website_url: body.website_url ? String(body.website_url).trim() || null : null,
     image_url: body.image_url ? String(body.image_url).trim() || null : null,
+    registration_status: body.registration_status ? String(body.registration_status) || null : null,
     status: body.status ? String(body.status) : 'pending',
     location: `${(city as string).trim()}, ${body.country ? String(body.country).trim() : ''}`.replace(/, $/, ''),
     updated_at: new Date().toISOString(),
@@ -123,24 +142,9 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 })
   }
 
-  // First verify ownership
-  const { data: existing, error: fetchError } = await supabase
+  const { error, count } = await supabase
     .from('races')
-    .select('id')
-    .eq('id', id)
-    .eq('organizer_id', session.user.id)
-    .single()
-
-  if (fetchError || !existing) {
-    return NextResponse.json(
-      { error: 'Course introuvable ou accès refusé.' },
-      { status: 404 }
-    )
-  }
-
-  const { error } = await supabase
-    .from('races')
-    .delete()
+    .delete({ count: 'exact' })
     .eq('id', id)
     .eq('organizer_id', session.user.id)
 
@@ -149,6 +153,13 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json(
       { error: 'Erreur lors de la suppression. Veuillez réessayer.' },
       { status: 500 }
+    )
+  }
+
+  if (count === 0) {
+    return NextResponse.json(
+      { error: 'Course introuvable ou accès refusé.' },
+      { status: 404 }
     )
   }
 
