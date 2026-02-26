@@ -174,7 +174,7 @@ export default async function RaceDetailPage({
       />
 
       {/* HERO — Immersive full-screen */}
-      <div className={`h-[70vh] min-h-[500px] ${!r.image_url ? (r.image_gradient || 'bg-gradient-to-br from-zinc-600 to-zinc-800') : ''} relative`}>
+      <div className={`h-[50vh] min-h-[400px] ${!r.image_url ? (r.image_gradient || 'bg-gradient-to-br from-zinc-600 to-zinc-800') : ''} relative`}>
         {r.image_url && (
           <Image
             src={r.image_url}
@@ -201,7 +201,7 @@ export default async function RaceDetailPage({
           </div>
         </div>
 
-        <div className="absolute bottom-0 w-full px-6 md:px-10 pb-20 pt-16">
+        <div className="absolute bottom-0 w-full px-6 md:px-10 pb-12 pt-16">
           <div className="max-w-7xl mx-auto">
             {/* Badge statut — unique, sobre */}
             {r.registration_status && (
