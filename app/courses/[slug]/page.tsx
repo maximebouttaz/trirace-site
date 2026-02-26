@@ -321,135 +321,33 @@ export default async function RaceDetailPage({
           {/* Main content — open sections separated by lines */}
           <div className="md:col-span-2">
 
-            {/* Parcours — GPX map + discipline details */}
+            {/* Parcours — GPX map + discipline details (unified) */}
             <section className="first:border-t-0 first:pt-0 first:mt-0">
               <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4">Parcours</h3>
-
-              {/* GPX Track + Elevation Profile */}
-              {r.track_geojson && (
-                <div className="mb-6">
-                  <RaceGPXSection
-                    trackGeoJSON={r.track_geojson}
-                    elevationProfile={r.elevation_profile}
-                  />
-                </div>
-              )}
-
-              {/* Bike profile fallback (SVG) — only if no GPX track */}
-              {!r.track_geojson && r.bike_elevation && r.bike_elevation > 0 && (
-                <div className="mb-6">
-                  <p className="text-xs text-zinc-400 font-bold mb-2">Profil Velo ({r.bike_elevation}m D+)</p>
-                  <div className="h-40 w-full relative">
-                    <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
-                      <path d="M0 25 L 10 25 L 30 5 L 50 15 L 70 2 L 90 25 L 100 25" fill="none" stroke="#a1a1aa" strokeWidth="2" />
-                      <path d="M0 25 L 10 25 L 30 5 L 50 15 L 70 2 L 90 25 L 100 25 V 30 H 0 Z" fill="url(#zinc-grad)" className="opacity-20" />
-                      <defs>
-                        <linearGradient id="zinc-grad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#a1a1aa" stopOpacity="0.5" />
-                          <stop offset="100%" stopColor="#a1a1aa" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="flex justify-between text-xs text-zinc-500 font-mono mt-2">
-                      <span>0km</span>
-                      <span>{formatDistance(r.bike_distance)}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-
-              {/* Discipline cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Natation */}
-                <div className="bg-gray-50 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Waves size={16} className="text-zinc-400" aria-hidden="true" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Natation</span>
-                  </div>
-                  <div className="space-y-2">
-                    {r.swim_type && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Type</span>
-                        <span className="text-sm font-bold text-zinc-900 capitalize">{r.swim_type}</span>
-                      </div>
-                    )}
-                    {r.is_wetsuit_allowed != null && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Combinaison</span>
-                        <span className="text-sm font-bold text-zinc-900">{r.is_wetsuit_allowed ? 'Autorisee' : 'Non autorisee'}</span>
-                      </div>
-                    )}
-                    {r.swim_cutoff_minutes ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Barriere</span>
-                        <span className="text-sm font-mono font-bold text-zinc-900">{Math.floor(r.swim_cutoff_minutes / 60)}h{r.swim_cutoff_minutes % 60 > 0 ? String(r.swim_cutoff_minutes % 60).padStart(2, '0') : ''}</span>
-                      </div>
-                    ) : r.time_limit_hours ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Barriere totale</span>
-                        <span className="text-sm font-mono font-bold text-zinc-900">{r.time_limit_hours}h</span>
-                      </div>
-                    ) : null}
-                    {!r.swim_type && r.is_wetsuit_allowed == null && !r.swim_cutoff_minutes && !r.time_limit_hours && (
-                      <p className="text-sm text-zinc-400 italic">Non renseigne</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Velo */}
-                <div className="bg-gray-50 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Bike size={16} className="text-zinc-400" aria-hidden="true" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Velo</span>
-                  </div>
-                  <div className="space-y-2">
-                    {r.bike_type && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Type</span>
-                        <span className="text-sm font-bold text-zinc-900 capitalize">{r.bike_type}</span>
-                      </div>
-                    )}
-                    {r.bike_cutoff_minutes ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Barriere</span>
-                        <span className="text-sm font-mono font-bold text-zinc-900">{Math.floor(r.bike_cutoff_minutes / 60)}h{r.bike_cutoff_minutes % 60 > 0 ? String(r.bike_cutoff_minutes % 60).padStart(2, '0') : ''}</span>
-                      </div>
-                    ) : r.time_limit_hours ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Barriere totale</span>
-                        <span className="text-sm font-mono font-bold text-zinc-900">{r.time_limit_hours}h</span>
-                      </div>
-                    ) : null}
-                    {!r.bike_type && !r.bike_cutoff_minutes && !r.time_limit_hours && (
-                      <p className="text-sm text-zinc-400 italic">Non renseigne</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Course a pied */}
-                <div className="bg-gray-50 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Activity size={16} className="text-zinc-400" aria-hidden="true" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Course</span>
-                  </div>
-                  <div className="space-y-2">
-                    {r.run_cutoff_minutes ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Barriere</span>
-                        <span className="text-sm font-mono font-bold text-zinc-900">{Math.floor(r.run_cutoff_minutes / 60)}h{r.run_cutoff_minutes % 60 > 0 ? String(r.run_cutoff_minutes % 60).padStart(2, '0') : ''}</span>
-                      </div>
-                    ) : r.time_limit_hours ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-500">Barriere totale</span>
-                        <span className="text-sm font-mono font-bold text-zinc-900">{r.time_limit_hours}h</span>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-zinc-400 italic">Non renseigne</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <RaceGPXSection
+                trackGeoJSON={r.track_geojson}
+                elevationProfile={r.elevation_profile}
+                disciplines={{
+                  swim: {
+                    type: r.swim_type,
+                    isWetsuitAllowed: r.is_wetsuit_allowed,
+                    cutoffMinutes: r.swim_cutoff_minutes,
+                    timeLimitHours: r.time_limit_hours,
+                  },
+                  bike: {
+                    type: r.bike_type,
+                    cutoffMinutes: r.bike_cutoff_minutes,
+                    timeLimitHours: r.time_limit_hours,
+                    elevationM: r.bike_elevation,
+                    distanceM: r.bike_distance,
+                  },
+                  run: {
+                    cutoffMinutes: r.run_cutoff_minutes,
+                    timeLimitHours: r.time_limit_hours,
+                    laps: r.run_laps,
+                  },
+                }}
+              />
             </section>
 
             {/* Description */}

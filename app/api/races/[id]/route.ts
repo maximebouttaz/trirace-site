@@ -31,6 +31,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       registration_deadline, label, organizer_name, finishers_count,
       qualification_for, formats,
       swim_cutoff_minutes, bike_cutoff_minutes, run_cutoff_minutes,
+      run_laps,
       registration_status,
       track_geojson, elevation_profile,
       swim_gpx_url, bike_gpx_url, run_gpx_url

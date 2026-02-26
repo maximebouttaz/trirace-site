@@ -549,6 +549,7 @@ export function scrapeGeneric(url: string, html: string): ScrapedFields {
     swim_cutoff_minutes: null,
     bike_cutoff_minutes: null,
     run_cutoff_minutes: null,
+    run_laps: null,
     swim_type: null,
     bike_type: null,
     is_wetsuit_allowed: null,
@@ -826,6 +827,16 @@ export function scrapeGeneric(url: string, html: string): ScrapedFields {
   if (result.swim_gpx_url === null) result.swim_gpx_url = disciplineGpx.swim_gpx_url
   if (result.bike_gpx_url === null) result.bike_gpx_url = disciplineGpx.bike_gpx_url
   if (result.run_gpx_url  === null) result.run_gpx_url  = disciplineGpx.run_gpx_url
+
+  // Nombre de boucles course à pied
+  if (result.run_laps === null) {
+    const lapsPattern = /(\d+)\s*(?:boucle[s]?|tour[s]?\s+de\s+(?:course|run)|loop[s]?|lap[s]?)\s*(?:de\s+course|de\s+run|running)?/i
+    const lapsMatch = text.match(lapsPattern)
+    if (lapsMatch) {
+      const val = parseInt(lapsMatch[1], 10)
+      if (!isNaN(val) && val > 0 && val <= 50) result.run_laps = val
+    }
+  }
 
   // Sold out
   const soldOutMatch = text.match(/(?:registration\s+)?sold\s+out|inscriptions?\s+(?:ferm[ée]es?|compl[eè]tes?)/i)
