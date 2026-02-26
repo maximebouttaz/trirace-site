@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle, ExternalLink } from 'lucide-react'
 import GpxUpload from '@/components/admin/GpxUpload'
 import MultiUrlScraper from '@/components/admin/MultiUrlScraper'
@@ -10,6 +10,8 @@ import type { ScrapedFields } from '@/lib/scrape-fields'
 
 export default function NewRaceClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialUrl = searchParams.get('url') ?? undefined
   const [formData, setFormData] = useState<Partial<AdminRaceFormData>>({})
   const [scrapedFields, setScrapedFields] = useState<Set<string>>(new Set())
   const [scraperDone, setScraperDone] = useState(false)
@@ -128,7 +130,7 @@ export default function NewRaceClient() {
         </p>
       </div>
 
-      <MultiUrlScraper onMergedData={handleMergedData} />
+      <MultiUrlScraper onMergedData={handleMergedData} initialUrl={initialUrl} />
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">

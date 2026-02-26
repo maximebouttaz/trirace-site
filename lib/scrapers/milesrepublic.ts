@@ -332,6 +332,66 @@ interface JsonLdEvent {
   organizer?: unknown
 }
 
+// ---------------------------------------------------------------------------
+// Helper : codes ISO pays → noms complets
+// ---------------------------------------------------------------------------
+
+function mapCountryCode(code: string | null): string | null {
+  if (!code) return null
+  if (code.length > 3) return code // déjà un nom complet
+  const MAP: Record<string, string> = {
+    FR: 'France', BE: 'Belgique', CH: 'Suisse', LU: 'Luxembourg',
+    ES: 'Espagne', IT: 'Italie', DE: 'Allemagne', GB: 'Royaume-Uni',
+    PT: 'Portugal', NL: 'Pays-Bas', AT: 'Autriche', DK: 'Danemark',
+    SE: 'Suède', NO: 'Norvège', FI: 'Finlande', PL: 'Pologne',
+  }
+  return MAP[code.toUpperCase()] ?? code
+}
+
+// ---------------------------------------------------------------------------
+// Helper : parser un SportsEvent JSON-LD dans partial (réutilisable)
+// ---------------------------------------------------------------------------
+
+function parseSportsEvent(ev: JsonLdEvent, partial: Partial<ScrapedFields>): void {
+  if (partial.date === undefined && ev.startDate) {
+    const raw = toStr(ev.startDate)
+    if (raw) {
+      try { partial.date = new Date(raw).toISOString().slice(0, 10) } catch { partial.date = raw.slice(0, 10) }
+    }
+  }
+  if (partial.image_url === undefined) partial.image_url = toStr(ev.image)
+
+  if (isRecord(ev.location)) {
+    const loc = ev.location as JsonLdLocation
+    if (isRecord(loc.address)) {
+      const addr = loc.address as JsonLdAddress
+      if (partial.city === undefined) partial.city = toStr(addr.addressLocality)
+      if (partial.region === undefined) partial.region = toStr(addr.addressRegion)
+      if (partial.country === undefined) partial.country = mapCountryCode(toStr(addr.addressCountry))
+    }
+    if (isRecord(loc.geo)) {
+      const geo = loc.geo as JsonLdGeo
+      if (partial.latitude === undefined) {
+        const lat = toNum(geo.latitude)
+        const lng = toNum(geo.longitude)
+        if (lat !== null) partial.latitude = lat
+        if (lng !== null) partial.longitude = lng
+      }
+    }
+  }
+
+  if (partial.price_euros === undefined && isRecord(ev.offers)) {
+    const offers = ev.offers as Record<string, unknown>
+    const price = toNum(offers['price'])
+    if (price !== null && price > 0) partial.price_euros = Math.round(price)
+  }
+
+  if (partial.organizer_name === undefined && isRecord(ev.organizer)) {
+    const org = ev.organizer as Record<string, unknown>
+    partial.organizer_name = toStr(org['name'])
+  }
+}
+
 function extractFromJsonLd(html: string): Partial<ScrapedFields> {
   const partial: Partial<ScrapedFields> = {}
   const jsonLdPattern = /<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi
@@ -348,58 +408,40 @@ function extractFromJsonLd(html: string): Partial<ScrapedFields> {
     const items: unknown[] = isArray(data) ? data : [data]
     for (const item of items) {
       if (!isRecord(item)) continue
+      const raw = item as Record<string, unknown>
+      const type = toStr(raw['@type'])
+
+      // MilesRepublic (App Router) enveloppe les SportsEvent dans un ItemList
+      if (type === 'ItemList') {
+        // Nom de l'événement au niveau racine (ex: "Light On Tri Woippy")
+        if (partial.name === undefined) partial.name = toStr(raw['name'])
+
+        // Parcourir les items pour extraire date et localisation
+        const elements = raw['itemListElement']
+        if (isArray(elements)) {
+          for (const el of elements) {
+            if (!isRecord(el)) continue
+            const innerItem = (el as Record<string, unknown>)['item']
+            if (!isRecord(innerItem)) continue
+            const ev = innerItem as JsonLdEvent
+            if (ev['@type'] !== 'SportsEvent' && ev['@type'] !== 'Event') continue
+            parseSportsEvent(ev, partial)
+            break // On s'arrête au premier SportsEvent pour date et localisation
+          }
+        }
+        continue
+      }
+
+      // SportsEvent/Event standard (autres sources)
       const ev = item as JsonLdEvent
-      const type = ev['@type']
       if (type !== 'SportsEvent' && type !== 'Event') continue
 
-      if (partial.name === undefined) {
-        partial.name = toStr(ev.name)
-      }
-      if (partial.date === undefined) {
-        partial.date = toStr(ev.startDate)
-      }
+      if (partial.name === undefined) partial.name = toStr(ev.name)
       if (partial.description === undefined) {
         const desc = toStr(ev.description)
         if (desc && desc.length > 30) partial.description = desc.slice(0, 1000)
       }
-      if (partial.image_url === undefined) {
-        partial.image_url = toStr(ev.image)
-      }
-
-      // Location
-      if (isRecord(ev.location)) {
-        const loc = ev.location as JsonLdLocation
-
-        if (isRecord(loc.address)) {
-          const addr = loc.address as JsonLdAddress
-          if (partial.city === undefined) partial.city = toStr(addr.addressLocality)
-          if (partial.region === undefined) partial.region = toStr(addr.addressRegion)
-          if (partial.country === undefined) partial.country = toStr(addr.addressCountry)
-        }
-
-        if (isRecord(loc.geo)) {
-          const geo = loc.geo as JsonLdGeo
-          if (partial.latitude === undefined) {
-            const lat = toNum(geo.latitude)
-            const lng = toNum(geo.longitude)
-            if (lat !== null) partial.latitude = lat
-            if (lng !== null) partial.longitude = lng
-          }
-        }
-      }
-
-      // Offres / prix
-      if (partial.price_euros === undefined && isRecord(ev.offers)) {
-        const offers = ev.offers as Record<string, unknown>
-        const price = toNum(offers['price'])
-        if (price !== null && price > 0) partial.price_euros = Math.round(price)
-      }
-
-      // Organisateur
-      if (partial.organizer_name === undefined && isRecord(ev.organizer)) {
-        const org = ev.organizer as Record<string, unknown>
-        partial.organizer_name = toStr(org['name'])
-      }
+      parseSportsEvent(ev, partial)
     }
   }
 

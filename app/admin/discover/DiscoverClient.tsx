@@ -10,6 +10,9 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  AlertTriangle,
+  RefreshCw,
+  Archive,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -24,15 +27,19 @@ interface CatalogRaceWithStatus {
   country: string | null
   format: 'full' | '70.3' | null
   source: string
-  status: 'new' | 'exists' | 'pending'
+  lastmod?: string | null
+  status: 'new' | 'exists' | 'pending' | 'missing' | 'updated'
   db_id?: number
   db_slug?: string
+  db_updated_at?: string
 }
 
 interface CatalogStats {
   total: number
   new: number
   existing: number
+  updated: number
+  missing: number
   pending: number
 }
 
@@ -42,7 +49,7 @@ interface CatalogResponse {
   scraped_at: string
 }
 
-type TabFilter = 'all' | 'new' | 'exists' | 'pending'
+type TabFilter = 'all' | 'new' | 'exists' | 'pending' | 'missing' | 'updated'
 type AddState = 'idle' | 'loading' | 'success' | 'error'
 
 interface AddStateMap {
@@ -65,6 +72,22 @@ function StatusBadge({ status }: { status: CatalogRaceWithStatus['status'] }) {
     return (
       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
         En attente
+      </span>
+    )
+  }
+  if (status === 'missing') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+        <AlertTriangle size={11} />
+        Supprimée
+      </span>
+    )
+  }
+  if (status === 'updated') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+        <RefreshCw size={11} />
+        Modifiée
       </span>
     )
   }
@@ -95,15 +118,30 @@ function FormatBadge({ format }: { format: CatalogRaceWithStatus['format'] }) {
 // ---------------------------------------------------------------------------
 
 export default function DiscoverClient() {
+  // ── Ironman scanner states ─────────────────────────────────────────────────
   const [scanState, setScanState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [catalog, setCatalog] = useState<CatalogRaceWithStatus[]>([])
   const [stats, setStats] = useState<CatalogStats | null>(null)
   const [scanError, setScanError] = useState<string | null>(null)
+
+  // ── Finishers scanner states ───────────────────────────────────────────────
+  const [finishersScanState, setFinishersScanState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [finishersCatalog, setFinishersCatalog] = useState<CatalogRaceWithStatus[]>([])
+  const [finishersStats, setFinishersStats] = useState<CatalogStats | null>(null)
+  const [finishersScanError, setFinishersScanError] = useState<string | null>(null)
+
+  // ── MilesRepublic scanner states ───────────────────────────────────────────
+  const [mrScanState, setMrScanState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [mrCatalog, setMrCatalog] = useState<CatalogRaceWithStatus[]>([])
+  const [mrStats, setMrStats] = useState<CatalogStats | null>(null)
+  const [mrScanError, setMrScanError] = useState<string | null>(null)
+
+  // ── Shared states ─────────────────────────────────────────────────────────
   const [tabFilter, setTabFilter] = useState<TabFilter>('all')
   const [addStates, setAddStates] = useState<AddStateMap>({})
   const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(null)
 
-  // ── Scan ──────────────────────────────────────────────────────────────────
+  // ── Scan Ironman ──────────────────────────────────────────────────────────
 
   async function handleScan() {
     setScanState('loading')
@@ -122,6 +160,50 @@ export default function DiscoverClient() {
     } catch (err) {
       setScanError(err instanceof Error ? err.message : 'Erreur inconnue')
       setScanState('error')
+    }
+  }
+
+  // ── Scan Finishers ────────────────────────────────────────────────────────
+
+  async function handleFinishersScan() {
+    setFinishersScanState('loading')
+    setFinishersScanError(null)
+    try {
+      const res = await fetch('/api/admin/catalog/finishers')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error ?? `Erreur ${res.status}`)
+      }
+      const data: CatalogResponse = await res.json()
+      setFinishersCatalog(data.catalog)
+      setFinishersStats(data.stats)
+      setFinishersScanState('done')
+      setTabFilter('new')
+    } catch (err) {
+      setFinishersScanError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setFinishersScanState('error')
+    }
+  }
+
+  // ── Scan MilesRepublic ────────────────────────────────────────────────────
+
+  async function handleMrScan() {
+    setMrScanState('loading')
+    setMrScanError(null)
+    try {
+      const res = await fetch('/api/admin/catalog/milesrepublic')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error ?? `Erreur ${res.status}`)
+      }
+      const data: CatalogResponse = await res.json()
+      setMrCatalog(data.catalog)
+      setMrStats(data.stats)
+      setMrScanState('done')
+      setTabFilter('new')
+    } catch (err) {
+      setMrScanError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setMrScanState('error')
     }
   }
 
@@ -166,10 +248,10 @@ export default function DiscoverClient() {
     }
   }
 
-  // ── Add all new races ─────────────────────────────────────────────────────
+  // ── Add all new Ironman races ──────────────────────────────────────────────
 
   async function handleAddAll() {
-    const newRaces = catalog.filter((r) => r.status === 'new')
+    const newRaces = allCatalog.filter((r) => r.status === 'new' && r.source !== 'finishers' && r.source !== 'milesrepublic')
     if (newRaces.length === 0) return
     if (
       !confirm(
@@ -189,14 +271,28 @@ export default function DiscoverClient() {
     setBulkProgress(null)
   }
 
-  // ── Filtered catalog ──────────────────────────────────────────────────────
+  // ── Catalog combiné : ironman + finishers + milesrepublic ─────────────────
+
+  const allCatalog = [...catalog, ...finishersCatalog, ...mrCatalog]
+
+  const allStats: CatalogStats | null =
+    stats || finishersStats || mrStats
+      ? {
+          total: (stats?.total ?? 0) + (finishersStats?.total ?? 0) + (mrStats?.total ?? 0),
+          new: (stats?.new ?? 0) + (finishersStats?.new ?? 0) + (mrStats?.new ?? 0),
+          existing: (stats?.existing ?? 0) + (finishersStats?.existing ?? 0) + (mrStats?.existing ?? 0),
+          updated: (stats?.updated ?? 0) + (finishersStats?.updated ?? 0),
+          missing: (stats?.missing ?? 0) + (finishersStats?.missing ?? 0),
+          pending: (stats?.pending ?? 0) + (finishersStats?.pending ?? 0) + (mrStats?.pending ?? 0),
+        }
+      : null
 
   const filteredCatalog =
     tabFilter === 'all'
-      ? catalog
-      : catalog.filter((r) => r.status === tabFilter)
+      ? allCatalog
+      : allCatalog.filter((r) => r.status === tabFilter)
 
-  const newCount = stats?.new ?? 0
+  const ironmanNewCount = catalog.filter((r) => r.status === 'new' && r.source !== 'finishers').length
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -210,17 +306,17 @@ export default function DiscoverClient() {
             <h1 className="text-2xl font-bold text-zinc-900">Decouverte de courses</h1>
           </div>
           <p className="text-sm text-zinc-500">
-            Scannez le catalogue Ironman pour decouvrir les courses non presentes dans votre base.
+            Scannez Ironman, Finishers ou MilesRepublic pour decouvrir les courses non presentes dans votre base.
           </p>
         </div>
 
-        {scanState === 'done' && newCount > 0 && !bulkProgress && (
+        {(scanState === 'done' || finishersScanState === 'done') && ironmanNewCount > 0 && !bulkProgress && (
           <button
             onClick={handleAddAll}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-zinc-900 text-white hover:bg-zinc-800 transition-colors shrink-0"
           >
             <Plus size={15} />
-            Tout ajouter ({newCount})
+            Tout ajouter ({ironmanNewCount})
           </button>
         )}
 
@@ -238,6 +334,7 @@ export default function DiscoverClient() {
           Sources
         </h2>
         <div className="flex items-center gap-4 flex-wrap">
+          {/* Scanner Ironman */}
           <button
             onClick={handleScan}
             disabled={scanState === 'loading'}
@@ -256,9 +353,65 @@ export default function DiscoverClient() {
             )}
           </button>
 
+          {/* Séparateur vertical */}
+          <div className="w-px h-8 bg-gray-200 hidden sm:block" />
+
+          {/* Scanner Finishers */}
+          <button
+            onClick={handleFinishersScan}
+            disabled={finishersScanState === 'loading'}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-zinc-900 border border-gray-200 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {finishersScanState === 'loading' ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                Scanner...
+              </>
+            ) : (
+              <>
+                <Search size={15} />
+                Scanner Finishers
+              </>
+            )}
+          </button>
+
+          {/* Séparateur */}
+          <div className="w-px h-8 bg-gray-200 hidden sm:block" />
+
+          {/* Scanner MilesRepublic */}
+          <button
+            onClick={handleMrScan}
+            disabled={mrScanState === 'loading'}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-zinc-900 border border-gray-200 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {mrScanState === 'loading' ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                Scanner...
+              </>
+            ) : (
+              <>
+                <Search size={15} />
+                Scanner MilesRepublic
+              </>
+            )}
+          </button>
+
           {scanState === 'loading' && (
             <p className="text-sm text-zinc-500">
               Scan en cours... (peut prendre 15-20 secondes)
+            </p>
+          )}
+
+          {finishersScanState === 'loading' && (
+            <p className="text-sm text-zinc-500">
+              Scan Finishers en cours...
+            </p>
+          )}
+
+          {mrScanState === 'loading' && (
+            <p className="text-sm text-zinc-500">
+              Scan MilesRepublic en cours...
             </p>
           )}
 
@@ -269,41 +422,65 @@ export default function DiscoverClient() {
             </div>
           )}
 
-          {scanState === 'idle' && (
+          {finishersScanState === 'error' && finishersScanError && (
+            <div className="flex items-center gap-2 text-sm text-red-600">
+              <AlertCircle size={15} />
+              {finishersScanError}
+            </div>
+          )}
+
+          {mrScanState === 'error' && mrScanError && (
+            <div className="flex items-center gap-2 text-sm text-red-600">
+              <AlertCircle size={15} />
+              {mrScanError}
+            </div>
+          )}
+
+          {scanState === 'idle' && finishersScanState === 'idle' && mrScanState === 'idle' && (
             <p className="text-sm text-zinc-400">
-              Scannez le catalogue Ironman pour decouvrir les courses non presentes dans votre base
+              Scannez une source pour decouvrir les courses non presentes dans votre base
             </p>
           )}
         </div>
       </div>
 
       {/* Results */}
-      {scanState === 'done' && stats && (
+      {(scanState === 'done' || finishersScanState === 'done' || mrScanState === 'done') && allStats && (
         <>
           {/* Stats band */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-5">
             <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-              <p className="text-2xl font-bold text-green-700">{stats.new}</p>
+              <p className="text-2xl font-bold text-green-700">{allStats.new}</p>
               <p className="text-xs text-zinc-500 mt-0.5">Nouvelles courses</p>
             </div>
             <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-              <p className="text-2xl font-bold text-zinc-500">{stats.existing}</p>
+              <p className="text-2xl font-bold text-zinc-500">{allStats.existing}</p>
               <p className="text-xs text-zinc-500 mt-0.5">Deja presentes</p>
             </div>
             <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-              <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+              <p className="text-2xl font-bold text-amber-600">{allStats.pending}</p>
               <p className="text-xs text-zinc-500 mt-0.5">En attente de validation</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
+              <p className="text-2xl font-bold text-orange-600">{allStats.updated}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Modifiées</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
+              <p className="text-2xl font-bold text-red-600">{allStats.missing}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Supprimées</p>
             </div>
           </div>
 
           {/* Tab filters */}
-          <div className="flex gap-1 mb-4">
+          <div className="flex gap-1 mb-4 flex-wrap">
             {(
               [
-                { key: 'all', label: 'Toutes', count: stats.total },
-                { key: 'new', label: 'Nouvelles', count: stats.new, badge: true },
-                { key: 'exists', label: 'Deja presentes', count: stats.existing },
-                { key: 'pending', label: 'En attente', count: stats.pending },
+                { key: 'all', label: 'Toutes', count: allStats.total },
+                { key: 'new', label: 'Nouvelles', count: allStats.new, badge: true },
+                { key: 'exists', label: 'Deja presentes', count: allStats.existing },
+                { key: 'pending', label: 'En attente', count: allStats.pending },
+                { key: 'updated', label: 'Modifiees', count: allStats.updated },
+                { key: 'missing', label: 'Supprimees', count: allStats.missing },
               ] as const
             ).map(({ key, label, count, ...rest }) => {
               const badge = 'badge' in rest ? rest.badge : false
@@ -348,16 +525,34 @@ export default function DiscoverClient() {
                   const addState = addStates[race.url]
                   const isAdded =
                     addState?.state === 'success' || race.status === 'pending'
-                  const isLoading = addState?.state === 'loading'
                   const isError = addState?.state === 'error'
 
                   return (
                     <li
                       key={race.url}
-                      className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors"
+                      className="flex items-start gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors"
                     >
+                      {/* Source badge */}
+                      <div className="pt-0.5 shrink-0">
+                        {race.source === 'finishers' ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 shrink-0">
+                            F
+                          </span>
+                        ) : race.source === 'milesrepublic' ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-600 shrink-0">
+                            MR
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-600 shrink-0">
+                            IM
+                          </span>
+                        )}
+                      </div>
+
                       {/* Status badge */}
-                      <StatusBadge status={race.status} />
+                      <div className="pt-0.5 shrink-0">
+                        <StatusBadge status={race.status} />
+                      </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
@@ -367,7 +562,7 @@ export default function DiscoverClient() {
                           </span>
                           <FormatBadge format={race.format} />
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-400">
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-400 flex-wrap">
                           {race.date && <span>{race.date}</span>}
                           {race.city && (
                             <>
@@ -376,6 +571,18 @@ export default function DiscoverClient() {
                                 {race.city}
                                 {race.country ? `, ${race.country}` : ''}
                               </span>
+                            </>
+                          )}
+                          {race.status === 'missing' && race.db_updated_at && (
+                            <>
+                              <span>·</span>
+                              <span>Dernière modif DB : {new Date(race.db_updated_at).toLocaleDateString('fr-FR')}</span>
+                            </>
+                          )}
+                          {race.status === 'updated' && race.lastmod && (
+                            <>
+                              <span>·</span>
+                              <span>Mise à jour ironman.com : {new Date(race.lastmod).toLocaleDateString('fr-FR')}</span>
                             </>
                           )}
                         </div>
@@ -388,29 +595,41 @@ export default function DiscoverClient() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-500 bg-gray-100 hover:bg-gray-200 transition-colors"
-                          title="Voir sur ironman.com"
+                          title="Voir la source"
                         >
                           <ExternalLink size={12} />
                         </a>
 
-                        {race.status === 'new' && !isAdded && (
-                          <button
-                            onClick={() => handleAdd(race)}
-                            disabled={isLoading}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        {race.status === 'updated' && (
+                          <a
+                            href={race.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 transition-colors"
                           >
-                            {isLoading ? (
-                              <>
-                                <Loader2 size={12} className="animate-spin" />
-                                Ajout...
-                              </>
-                            ) : (
-                              <>
-                                <Plus size={12} />
-                                Ajouter
-                              </>
-                            )}
-                          </button>
+                            <ExternalLink size={12} />
+                            Voir sur ironman.com
+                          </a>
+                        )}
+
+                        {race.status === 'missing' && race.db_slug && (
+                          <Link
+                            href={`/admin/races/${race.db_slug}/edit`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                          >
+                            <Archive size={12} />
+                            Archiver
+                          </Link>
+                        )}
+
+                        {race.status === 'new' && !isAdded && (
+                          <Link
+                            href={`/admin/new?url=${encodeURIComponent(race.url)}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 transition-colors"
+                          >
+                            <Plus size={12} />
+                            Ajouter
+                          </Link>
                         )}
 
                         {isAdded && (

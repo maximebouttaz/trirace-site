@@ -28,13 +28,13 @@ export default function NextRaceWidget({ race }: { race: Race }) {
             {countdown && countdown.startsWith('J-') ? (
               <>
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">dans</span>
-                <span className="text-3xl font-black font-mono leading-none mt-0.5">
+                <span suppressHydrationWarning className="text-3xl font-black font-mono leading-none mt-0.5">
                   {countdown.replace('J-', '')}
                 </span>
                 <span className="text-xs font-bold mt-1 opacity-90">jours</span>
               </>
             ) : (
-              <span className="text-sm font-black text-center leading-tight px-2">{countdown}</span>
+              <span suppressHydrationWarning className="text-sm font-black text-center leading-tight px-2">{countdown}</span>
             )}
           </div>
 

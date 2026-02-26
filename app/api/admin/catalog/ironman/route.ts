@@ -25,9 +25,10 @@ function nameToSlug(name: string): string {
 // ---------------------------------------------------------------------------
 
 interface CatalogRaceWithStatus extends CatalogRace {
-  status: 'new' | 'exists' | 'pending'
+  status: 'new' | 'exists' | 'updated' | 'missing' | 'pending'
   db_id?: number
   db_slug?: string
+  db_updated_at?: string
 }
 
 interface CatalogResponse {
@@ -36,6 +37,8 @@ interface CatalogResponse {
     total: number
     new: number
     existing: number
+    updated: number
+    missing: number
     pending: number
   }
   scraped_at: string
@@ -79,7 +82,7 @@ export async function GET() {
   // Récupérer toutes les courses Ironman existantes en DB
   const { data: dbRaces, error: dbError } = await supabase
     .from('races')
-    .select('id, slug, website_url, name, city, needs_review')
+    .select('id, slug, website_url, name, city, needs_review, updated_at')
     .is('deleted_at', null)
     .or('category.eq.XL,category.eq.70.3')
 
@@ -101,6 +104,22 @@ export async function GET() {
     bySlug.set(race.slug.toLowerCase().trim(), race)
   }
 
+  // Helper — détermine si lastmod sitemap est plus récent que updated_at DB
+  function isUpdated(lastmod: string | null, updatedAt: string | null): boolean {
+    if (!lastmod || !updatedAt) return false
+    return new Date(lastmod) > new Date(updatedAt)
+  }
+
+  // Helper — résoudre le statut d'une race matchée en DB
+  function resolveStatus(
+    dbRace: typeof existingRaces[number],
+    lastmod: string | null,
+  ): 'exists' | 'updated' | 'pending' {
+    if (dbRace.needs_review) return 'pending'
+    if (isUpdated(lastmod, dbRace.updated_at)) return 'updated'
+    return 'exists'
+  }
+
   // Enrichir chaque course catalogue avec son statut DB
   const enriched: CatalogRaceWithStatus[] = catalogRaces.map((catalogRace) => {
     // 1. Match par website_url exact
@@ -108,9 +127,10 @@ export async function GET() {
     if (byUrl) {
       return {
         ...catalogRace,
-        status: byUrl.needs_review ? 'pending' : 'exists',
+        status: resolveStatus(byUrl, catalogRace.lastmod),
         db_id: byUrl.id,
         db_slug: byUrl.slug,
+        db_updated_at: byUrl.updated_at ?? undefined,
       }
     }
 
@@ -126,9 +146,10 @@ export async function GET() {
     if (byUrlSlug) {
       return {
         ...catalogRace,
-        status: byUrlSlug.needs_review ? 'pending' : 'exists',
+        status: resolveStatus(byUrlSlug, catalogRace.lastmod),
         db_id: byUrlSlug.id,
         db_slug: byUrlSlug.slug,
+        db_updated_at: byUrlSlug.updated_at ?? undefined,
       }
     }
 
@@ -140,9 +161,10 @@ export async function GET() {
       ) {
         return {
           ...catalogRace,
-          status: dbRace.needs_review ? 'pending' : 'exists',
+          status: resolveStatus(dbRace, catalogRace.lastmod),
           db_id: dbRace.id,
           db_slug: dbRace.slug,
+          db_updated_at: dbRace.updated_at ?? undefined,
         }
       }
     }
@@ -151,11 +173,35 @@ export async function GET() {
     return { ...catalogRace, status: 'new' }
   })
 
+  // Passe inverse — détecter les races DB absentes du sitemap ("missing")
+  const sitemapUrls = new Set(catalogRaces.map((r) => r.url.toLowerCase().trim()))
+  for (const dbRace of existingRaces) {
+    if (!dbRace.website_url?.includes('ironman.com/races/')) continue
+    if (sitemapUrls.has(dbRace.website_url.toLowerCase().trim())) continue
+
+    enriched.push({
+      name: dbRace.name,
+      url: dbRace.website_url,
+      date: null,
+      city: null,
+      country: null,
+      format: null,
+      source: 'db',
+      lastmod: null,
+      status: 'missing',
+      db_id: dbRace.id,
+      db_slug: dbRace.slug,
+      db_updated_at: dbRace.updated_at ?? undefined,
+    })
+  }
+
   // Statistiques
   const stats = {
     total: enriched.length,
     new: enriched.filter((r) => r.status === 'new').length,
     existing: enriched.filter((r) => r.status === 'exists').length,
+    updated: enriched.filter((r) => r.status === 'updated').length,
+    missing: enriched.filter((r) => r.status === 'missing').length,
     pending: enriched.filter((r) => r.status === 'pending').length,
   }
 

@@ -1,64 +1,73 @@
 // ---------------------------------------------------------------------------
-// Ironman Catalog Scraper
+// Ironman Catalog Scraper — sitemap XML
 // Stratégie :
-//   A) ironman.com/races avec headers browser (Next.js __NEXT_DATA__ ou liens href)
-//   B) Fallback coachcox.co.uk pour les full distance
-// Les 70.3 sont extraits depuis la même source ironman.com si possible,
-// avec fallback sur l'analyse des slugs coachcox.
+//   1. Fetcher https://www.ironman.com/sitemap.xml (index) → 4 sous-sitemaps
+//   2. Fetcher chaque sous-sitemap https://www.ironman.com/sitemap.xml?page=N
+//   3. Parser les <url> dont <loc> matche /races/[slug-direct] (pas de sous-chemin)
+//   4. Retourner CatalogRace[] dédupliqué par URL
 // ---------------------------------------------------------------------------
 
 export interface CatalogRace {
-  name: string
-  url: string        // URL de la page ironman.com
-  date: string | null  // format YYYY-MM-DD si possible
+  name: string        // construit depuis le slug (ex: "im703-texas" → "IRONMAN 70.3 Texas")
+  url: string         // URL complète ironman.com
+  date: string | null // format YYYY-MM-DD si possible
   city: string | null
   country: string | null
-  format: 'full' | '70.3' | null  // inféré depuis le nom ou l'URL
-  source: string     // 'ironman.com' | 'coachcox' | 'finishers'
+  format: 'full' | '70.3' | '5150' | null
+  source: string      // 'sitemap'
+  lastmod: string | null // ISO date string du lastmod sitemap
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function detectFormat(name: string, url: string): 'full' | '70.3' | null {
-  const combined = `${name} ${url}`.toLowerCase()
-  if (combined.includes('70.3') || combined.includes('703')) return '70.3'
-  if (combined.includes('ironman') || combined.includes('/im-') || combined.includes('/ironman-')) return 'full'
+function detectFormat(slug: string): 'full' | '70.3' | '5150' | null {
+  if (slug.includes('703') || slug.includes('70-3')) return '70.3'
+  if (slug.includes('5150')) return '5150'
+  if (slug.startsWith('im-')) return 'full'
   return null
 }
 
-function nameToIronmanSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace('ironman 70.3', 'ironman-703')
-    .replace('ironman', 'ironman')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
+function slugToName(slug: string): string {
+  // im703-texas → "IRONMAN 70.3 Texas"
+  // im-new-zealand → "IRONMAN New Zealand"
+  // 5150-guimaras → "5150 Guimaras"
+  let working = slug
 
-function parseIsoDate(raw: string): string | null {
-  // Accepte "2026-06-14T06:00:00Z", "June 14, 2026", "14/06/2026", etc.
-  if (!raw) return null
-  // ISO
-  const isoMatch = raw.match(/(\d{4}-\d{2}-\d{2})/)
-  if (isoMatch) return isoMatch[1]
-  // "Month DD, YYYY"
-  const verboseMatch = raw.match(/([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/)
-  if (verboseMatch) {
-    const months: Record<string, string> = {
-      january: '01', february: '02', march: '03', april: '04',
-      may: '05', june: '06', july: '07', august: '08',
-      september: '09', october: '10', november: '11', december: '12',
-    }
-    const month = months[verboseMatch[1].toLowerCase()]
-    if (month) {
-      return `${verboseMatch[3]}-${month}-${verboseMatch[2].padStart(2, '0')}`
-    }
+  if (working.startsWith('im703-') || working.startsWith('im703')) {
+    working = working.replace(/^im703-?/, '')
+    const location = working
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+    return `IRONMAN 70.3 ${location}`
   }
-  return null
+
+  if (working.startsWith('im-')) {
+    working = working.replace(/^im-/, '')
+    const location = working
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+    return `IRONMAN ${location}`
+  }
+
+  if (working.startsWith('5150-')) {
+    working = working.replace(/^5150-/, '')
+    const location = working
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+    return `5150 ${location}`
+  }
+
+  // Cas générique : capitaliser chaque mot
+  return slug
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
 }
 
 function deduplicateByUrl(races: CatalogRace[]): CatalogRace[] {
@@ -70,210 +79,122 @@ function deduplicateByUrl(races: CatalogRace[]): CatalogRace[] {
   })
 }
 
-// ---------------------------------------------------------------------------
-// Étape A — ironman.com/races
-// ---------------------------------------------------------------------------
+// Extrait toutes les paires <loc>...</loc><lastmod>...</lastmod> d'un XML de sitemap
+function parseUrlsFromSitemap(xml: string): Array<{ loc: string; lastmod: string | null }> {
+  const results: Array<{ loc: string; lastmod: string | null }> = []
+  // Pattern : <url>...</url> blocs
+  const urlBlockPattern = /<url>([\s\S]*?)<\/url>/g
+  let blockMatch: RegExpExecArray | null
 
-async function scrapeIronmanDotCom(): Promise<CatalogRace[]> {
-  let html: string
-  try {
-    const res = await fetch('https://www.ironman.com/races', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
-      },
-      signal: AbortSignal.timeout(15000),
-    })
-    if (!res.ok) return []
-    html = await res.text()
-  } catch {
-    return []
-  }
+  while ((blockMatch = urlBlockPattern.exec(xml)) !== null) {
+    const block = blockMatch[1]
 
-  const races: CatalogRace[] = []
+    const locMatch = block.match(/<loc>(.*?)<\/loc>/)
+    if (!locMatch) continue
+    const loc = locMatch[1].trim()
 
-  // Tentative 1 : __NEXT_DATA__
-  try {
-    const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([^<]+)<\/script>/)
-    if (nextDataMatch?.[1]) {
-      const nextData = JSON.parse(nextDataMatch[1]) as Record<string, unknown>
-      // Chercher récursivement les entrées avec startDate + name + url
-      const items = extractRacesFromNextData(nextData)
-      if (items.length > 0) {
-        races.push(...items)
-      }
-    }
-  } catch {
-    // ignore JSON parse errors
-  }
+    const lastmodMatch = block.match(/<lastmod>(.*?)<\/lastmod>/)
+    const lastmod = lastmodMatch ? lastmodMatch[1].trim() : null
 
-  // Tentative 2 : scraping des href /races/ironman-* ou /races/im*
-  if (races.length === 0) {
-    const hrefPattern = /href="(\/races\/(?:ironman[^"]*|im[^"]*))"/gi
-    let match: RegExpExecArray | null
-    while ((match = hrefPattern.exec(html)) !== null) {
-      const path = match[1]
-      // Exclure les chemins trop génériques ou avec extensions
-      if (path === '/races' || path.includes('.') || path.split('/').length > 3) continue
-      const url = `https://www.ironman.com${path}`
-      const namePart = path.replace('/races/', '').replace(/-/g, ' ')
-      const name = namePart
-        .replace(/\b703\b/g, '70.3')
-        .replace(/\bironian\b/gi, 'IRONMAN')
-        .split(' ')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ')
-
-      races.push({
-        name,
-        url,
-        date: null,
-        city: null,
-        country: null,
-        format: detectFormat(name, url),
-        source: 'ironman.com',
-      })
-    }
-  }
-
-  return races
-}
-
-function extractRacesFromNextData(obj: unknown, depth = 0): CatalogRace[] {
-  if (depth > 10 || typeof obj !== 'object' || obj === null) return []
-  const results: CatalogRace[] = []
-
-  if (Array.isArray(obj)) {
-    for (const item of obj) {
-      results.push(...extractRacesFromNextData(item, depth + 1))
-    }
-    return results
-  }
-
-  const record = obj as Record<string, unknown>
-
-  // Cherche un objet ressemblant à une course (a un name + url qui contient ironman.com/races)
-  const url = typeof record.url === 'string' ? record.url : null
-  const name = typeof record.name === 'string' ? record.name : null
-  const startDate = typeof record.startDate === 'string' ? record.startDate :
-                    typeof record.date === 'string' ? record.date : null
-
-  if (
-    name && url &&
-    url.includes('ironman.com/races') &&
-    (name.toLowerCase().includes('ironman') || name.toLowerCase().includes('70.3'))
-  ) {
-    const city = typeof record.city === 'string' ? record.city :
-                 typeof record.location === 'string' ? record.location : null
-    const country = typeof record.country === 'string' ? record.country : null
-
-    results.push({
-      name,
-      url,
-      date: startDate ? parseIsoDate(startDate) : null,
-      city,
-      country,
-      format: detectFormat(name, url),
-      source: 'ironman.com',
-    })
-    return results
-  }
-
-  for (const value of Object.values(record)) {
-    results.push(...extractRacesFromNextData(value, depth + 1))
+    results.push({ loc, lastmod })
   }
 
   return results
 }
 
 // ---------------------------------------------------------------------------
-// Étape B — Fallback coachcox.co.uk (full distance)
+// Fetch d'un sous-sitemap et extraction des courses
 // ---------------------------------------------------------------------------
 
-async function scrapeCoachCox(): Promise<CatalogRace[]> {
-  let html: string
+async function fetchSubSitemap(url: string): Promise<CatalogRace[]> {
+  let xml: string
   try {
-    const res = await fetch('https://www.coachcox.co.uk/imstats/im/', {
-      headers: { 'User-Agent': 'TriRace/1.0' },
-      signal: AbortSignal.timeout(10000),
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'TriRace/1.0 (sitemap crawler)' },
+      signal: AbortSignal.timeout(15000),
     })
-    if (!res.ok) return []
-    html = await res.text()
-  } catch {
+    if (!res.ok) {
+      console.warn(`[ironman-catalog] Sous-sitemap ${url} → HTTP ${res.status}`)
+      return []
+    }
+    xml = await res.text()
+  } catch (err) {
+    console.warn(`[ironman-catalog] Fetch échoué pour ${url} :`, err)
     return []
   }
 
+  const entries = parseUrlsFromSitemap(xml)
   const races: CatalogRace[] = []
 
-  // Extraire les lignes de tableau ou liens contenant des noms de course Ironman
-  // coachcox liste les courses dans des liens ou des cellules de table
-  // Pattern : chercher les textes "IRONMAN ..." ou "Ironman ..."
-  const rowPattern = /<(?:td|th|a)[^>]*>([^<]*(?:IRONMAN|Ironman)[^<]*)<\/(?:td|th|a)>/gi
-  const seen = new Set<string>()
-  let match: RegExpExecArray | null
+  for (const { loc, lastmod } of entries) {
+    // Garder uniquement les URLs qui matchent /races/[slug-direct] sans sous-chemin
+    // ex: https://www.ironman.com/races/im703-texas ✓
+    // ex: https://www.ironman.com/races/im703-texas/registration ✗
+    const racePathMatch = loc.match(/^https?:\/\/www\.ironman\.com\/races\/([a-z0-9][a-z0-9-]*)$/)
+    if (!racePathMatch) continue
 
-  while ((match = rowPattern.exec(html)) !== null) {
-    const rawName = match[1].trim()
-    if (!rawName || rawName.length < 5) continue
-    // Normaliser le nom
-    const name = rawName
-      .replace(/\s+/g, ' ')
-      .replace(/IRONMAN/g, 'IRONMAN')
-      .trim()
-
-    if (seen.has(name)) continue
-    seen.add(name)
-
-    // Extraire la date si présente dans le contexte proche (±300 chars)
-    const contextStart = Math.max(0, match.index - 200)
-    const contextEnd = Math.min(html.length, match.index + match[0].length + 200)
-    const context = html.slice(contextStart, contextEnd)
-
-    const dateMatch = context.match(/(\d{1,2})[\/\-\s]([A-Za-z]+|\d{1,2})[\/\-\s](\d{4})/)
-    let date: string | null = null
-    if (dateMatch) {
-      date = parseIsoDate(dateMatch[0])
-    }
-
-    const slug = nameToIronmanSlug(name)
-    const url = `https://www.ironman.com/races/${slug}`
+    const slug = racePathMatch[1]
+    const format = detectFormat(slug)
+    const name = slugToName(slug)
 
     races.push({
       name,
-      url,
-      date,
+      url: loc,
+      date: null,
       city: null,
       country: null,
-      format: detectFormat(name, url),
-      source: 'coachcox',
+      format,
+      source: 'sitemap',
+      lastmod: lastmod ?? null,
     })
   }
 
-  // Fallback : chercher les liens <a href> vers les pages ironman sur coachcox
-  if (races.length === 0) {
-    const linkPattern = /<a[^>]+href="([^"]*)"[^>]*>([^<]*(?:IRONMAN|Ironman|ironman)[^<]*)<\/a>/gi
-    while ((match = linkPattern.exec(html)) !== null) {
-      const rawName = match[2].trim()
-      if (!rawName || seen.has(rawName)) continue
-      seen.add(rawName)
+  return races
+}
 
-      const slug = nameToIronmanSlug(rawName)
-      const url = `https://www.ironman.com/races/${slug}`
+// ---------------------------------------------------------------------------
+// Fetch du sitemap index pour découvrir les sous-sitemaps
+// ---------------------------------------------------------------------------
 
-      races.push({
-        name: rawName,
-        url,
-        date: null,
-        city: null,
-        country: null,
-        format: detectFormat(rawName, url),
-        source: 'coachcox',
-      })
+async function fetchSitemapIndex(): Promise<string[]> {
+  let xml: string
+  try {
+    const res = await fetch('https://www.ironman.com/sitemap.xml', {
+      headers: { 'User-Agent': 'TriRace/1.0 (sitemap crawler)' },
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) {
+      console.warn(`[ironman-catalog] Sitemap index → HTTP ${res.status}`)
+      return []
+    }
+    xml = await res.text()
+  } catch (err) {
+    console.warn('[ironman-catalog] Fetch sitemap index échoué :', err)
+    return []
+  }
+
+  // Chercher les <loc> dans les <sitemap> du sitemapindex
+  const sitemapUrls: string[] = []
+  const sitemapBlockPattern = /<sitemap>([\s\S]*?)<\/sitemap>/g
+  let blockMatch: RegExpExecArray | null
+
+  while ((blockMatch = sitemapBlockPattern.exec(xml)) !== null) {
+    const locMatch = blockMatch[1].match(/<loc>(.*?)<\/loc>/)
+    if (locMatch) {
+      sitemapUrls.push(locMatch[1].trim())
     }
   }
 
-  return races
+  // Si aucun sous-sitemap trouvé dans un sitemapindex standard,
+  // tenter la convention ?page=N (pages 1 à 4)
+  if (sitemapUrls.length === 0) {
+    console.warn('[ironman-catalog] Index sans <sitemap> — fallback pages 1-4')
+    for (let page = 1; page <= 4; page++) {
+      sitemapUrls.push(`https://www.ironman.com/sitemap.xml?page=${page}`)
+    }
+  }
+
+  return sitemapUrls
 }
 
 // ---------------------------------------------------------------------------
@@ -281,26 +202,22 @@ async function scrapeCoachCox(): Promise<CatalogRace[]> {
 // ---------------------------------------------------------------------------
 
 export async function scrapeIronmanCatalog(): Promise<CatalogRace[]> {
-  // Étape A : ironman.com
-  let races: CatalogRace[] = []
-  try {
-    races = await scrapeIronmanDotCom()
-  } catch (err) {
-    console.warn('[ironman-catalog] Étape A échouée :', err)
+  // 1. Récupérer la liste des sous-sitemaps
+  const subSitemapUrls = await fetchSitemapIndex()
+
+  if (subSitemapUrls.length === 0) {
+    console.warn('[ironman-catalog] Aucun sous-sitemap découvert — catalogue vide.')
+    return []
   }
 
-  // Étape B : fallback coachcox si ironman.com n'a rien retourné
-  if (races.length === 0) {
-    try {
-      races = await scrapeCoachCox()
-    } catch (err) {
-      console.warn('[ironman-catalog] Étape B (coachcox) échouée :', err)
-    }
+  // 2. Fetcher tous les sous-sitemaps en parallèle
+  const results = await Promise.all(subSitemapUrls.map(fetchSubSitemap))
+  const allRaces = results.flat()
+
+  if (allRaces.length === 0) {
+    console.warn('[ironman-catalog] Aucune course extraite depuis les sitemaps.')
   }
 
-  if (races.length === 0) {
-    console.warn('[ironman-catalog] Toutes les sources ont échoué — catalogue vide.')
-  }
-
-  return deduplicateByUrl(races)
+  // 3. Déduplication par URL
+  return deduplicateByUrl(allRaces)
 }

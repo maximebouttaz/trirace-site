@@ -1,5 +1,10 @@
+import { Suspense } from 'react'
 import NewRaceClient from './NewRaceClient'
 
 export default function AdminNewRacePage() {
-  return <NewRaceClient />
+  return (
+    <Suspense>
+      <NewRaceClient />
+    </Suspense>
+  )
 }

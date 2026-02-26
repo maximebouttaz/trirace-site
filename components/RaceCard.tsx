@@ -124,12 +124,12 @@ function RaceCard({ race, onMouseEnter, priority = false }: { race: Race; onMous
                 <span className="font-mono text-xs font-semibold text-zinc-400">{formatDate(race.date)}</span>
               </div>
               {countdown != null && (
-                <span className="font-mono text-[11px] font-bold text-zinc-300">
+                <span suppressHydrationWarning className="font-mono text-[11px] font-bold text-zinc-300">
                   J-{countdown}
                 </span>
               )}
               {regUrgency && regUrgency.urgent && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600">
+                <span suppressHydrationWarning className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600">
                   Inscriptions : {regUrgency.text}
                 </span>
               )}

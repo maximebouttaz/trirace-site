@@ -157,9 +157,43 @@ export async function POST(req: NextRequest) {
       case 'finishers':
         result = scrapeFinishers(url, html)
         break
-      case 'milesrepublic':
+      case 'milesrepublic': {
         result = scrapeMilesRepublic(url, html)
+
+        // Enrichissement Meilisearch : region, department, category, country
+        const mrSlug = url.match(/\/en\/event\/([^/?#]+)/)?.[1] ?? null
+        if (mrSlug) {
+          try {
+            const mrRes = await fetch('https://miles-meilisearch.onrender.com/multi-search', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer 907c3e336637f8ff56389dce5ce5ee339a5c9e38f0c7a29902e45c83810987b5',
+                'Content-Type': 'application/json',
+              },
+              // Recherche par nom (eventSlug non filterable dans Meilisearch)
+              body: JSON.stringify({ queries: [{ indexUid: 'fra_events', q: result.name ?? mrSlug.replace(/-\d+$/, '').replace(/-/g, ' '), hitsPerPage: 1, filter: 'eventStatus = "LIVE"' }] }),
+              signal: AbortSignal.timeout(5000),
+            })
+            if (mrRes.ok) {
+              const mrData = await mrRes.json()
+              const hit = mrData.results?.[0]?.hits?.[0]
+              if (hit) {
+                if (!result.region) result.region = hit.eventCountrySubdivisionNameLevel1 ?? null
+                if (!result.department) result.department = hit.eventCountrySubdivisionNameLevel2 ?? null
+                if (!result.country || result.country.length <= 2) result.country = hit.eventCountry ?? result.country
+                if (!result.category) {
+                  const cats: string[] = Array.isArray(hit.editionLiveLevel2CategoryKey) ? hit.editionLiveLevel2CategoryKey : [hit.editionLiveLevel2CategoryKey]
+                  const PRIO: Record<string, number> = { TRIATHLON_XXL: 6, TRIATHLON_L: 5, TRIATHLON_M: 4, TRIATHLON_S: 3, TRIATHLON_XS: 2 }
+                  const MAP: Record<string, string> = { TRIATHLON_XS: 'XS', TRIATHLON_S: 'S', TRIATHLON_M: 'M', TRIATHLON_L: 'L', TRIATHLON_XXL: 'Ironman' }
+                  const top = cats.filter(c => c in PRIO).sort((a, b) => (PRIO[b] ?? 0) - (PRIO[a] ?? 0))[0]
+                  if (top) result.category = MAP[top] ?? null
+                }
+              }
+            }
+          } catch { /* enrichissement optionnel */ }
+        }
         break
+      }
       default:
         result = scrapeGeneric(url, html)
     }

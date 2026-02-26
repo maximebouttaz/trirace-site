@@ -1,0 +1,92 @@
+name: Monitor Finishers — Nouvelles courses triathlon
+
+on:
+  schedule:
+    # Tous les lundis à 7h00 UTC
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    # Déclenchement manuel depuis l'onglet Actions
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 lxml
+
+      - name: Run monitor
+        id: monitor
+        run: |
+          python scripts/monitor_finishers.py --output json > /tmp/new_courses.json 2>/tmp/monitor_stderr.txt
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          cat /tmp/monitor_stderr.txt
+          cat /tmp/new_courses.json
+        continue-on-error: true
+
+      - name: Créer une issue GitHub si nouvelles courses
+        if: steps.monitor.outputs.exit_code == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_COUNT=$(cat /tmp/new_courses.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['new_count'])")
+          TOTAL=$(cat /tmp/new_courses.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['total_detected'])")
+
+          BODY=$(python3 << 'EOF'
+          import json, sys
+
+          with open("/tmp/new_courses.json") as f:
+              data = json.load(f)
+
+          lines = []
+          lines.append(f"**{data['new_count']} nouvelle(s) course(s) triathlon** détectée(s) sur Finishers.com")
+          lines.append(f"_(sur {data['total_detected']} courses visibles au total)_")
+          lines.append("")
+          lines.append("| Slug | Nom | Date |")
+          lines.append("|------|-----|------|")
+
+          for e in sorted(data["new_events"], key=lambda x: x.get("date", "")):
+              slug = e["slug"]
+              name = e.get("name", "—")
+              date = e.get("date", "—")
+              url = f"https://www.finishers.com/course/{slug}"
+              lines.append(f"| [{slug}]({url}) | {name} | {date} |")
+
+          lines.append("")
+          lines.append("---")
+          lines.append("**Actions à faire :**")
+          lines.append("1. Vérifier si ces courses sont déjà dans TriRace")
+          lines.append("2. Si non → scraper et ajouter via `/admin/new`")
+          lines.append("3. Une fois traitées : `python scripts/monitor_finishers.py --update` puis commit")
+
+          print("\n".join(lines))
+          EOF
+          )
+
+          gh issue create \
+            --title "Finishers : ${NEW_COUNT} nouvelle(s) course(s) triathlon France détectée(s)" \
+            --body "$BODY" \
+            --label "data,triathlon" \
+            --assignee "${{ github.repository_owner }}"
+
+      - name: Aucune nouveauté
+        if: steps.monitor.outputs.exit_code == '0'
+        run: echo "Aucune nouvelle course détectée cette semaine."
+
+      - name: Erreur de monitoring
+        if: steps.monitor.outputs.exit_code == '2'
+        run: |
+          echo "Le script de monitoring a échoué (réseau ou parsing)."
+          cat /tmp/monitor_stderr.txt
+          exit 1

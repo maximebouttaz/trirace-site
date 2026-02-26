@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Plus, X, Loader2, Check, AlertCircle, ArrowRight, SkipForward } from 'lucide-react'
 import type { ScrapedFields, ConflictItem } from '@/lib/scrape-fields'
 import { SCRAPABLE_FIELD_META } from '@/lib/scrape-fields'
@@ -15,6 +15,7 @@ interface UrlEntry {
 
 interface MultiUrlScraperProps {
   onMergedData: (data: Partial<ScrapedFields>, scrapedKeys: Set<string>) => void
+  initialUrl?: string
 }
 
 function truncateDomain(url: string): string {
@@ -42,9 +43,14 @@ function formatValue(value: unknown): string {
   return String(value)
 }
 
-export default function MultiUrlScraper({ onMergedData }: MultiUrlScraperProps) {
+export default function MultiUrlScraper({ onMergedData, initialUrl }: MultiUrlScraperProps) {
   const [urls, setUrls] = useState<UrlEntry[]>([])
   const [input, setInput] = useState('')
+
+  useEffect(() => {
+    if (!initialUrl) return
+    setUrls([{ id: crypto.randomUUID(), url: initialUrl, status: 'pending', data: null, error: null }])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<'input' | 'resolving' | 'done'>('input')
   const [conflicts, setConflicts] = useState<ConflictItem[]>([])
   const [mergedPreview, setMergedPreview] = useState<Partial<ScrapedFields>>({})
