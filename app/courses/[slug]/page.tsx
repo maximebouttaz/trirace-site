@@ -7,7 +7,7 @@ import {
   Calendar, MapPin, Users, Wind, Sun,
   Waves, Bike, Activity, Euro, ExternalLink,
   ArrowRight, Zap, ChevronRight,
-  Flag, Medal, Shield,
+  Flag, Medal, Shield, TicketCheck, Lock,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Race } from '@/lib/types';
@@ -402,6 +402,92 @@ export default async function RaceDetailPage({
 
           {/* Sidebar — unified style */}
           <div className="space-y-6">
+
+            {/* Inscriptions */}
+            {(r.registration_status || r.website_url || (r.formats && r.formats.length > 0)) && (
+              <section className="rounded-2xl border border-gray-200 overflow-hidden">
+                {/* Statut global */}
+                {r.registration_status === 'open' && (
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 bg-emerald-50 border-b border-emerald-100">
+                    <TicketCheck size={15} className="text-emerald-600 shrink-0" aria-hidden="true" />
+                    <span className="text-sm font-bold text-emerald-700">Inscriptions ouvertes</span>
+                  </div>
+                )}
+                {r.registration_status === 'sold_out' && (
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 bg-red-50 border-b border-red-100">
+                    <Lock size={15} className="text-red-500 shrink-0" aria-hidden="true" />
+                    <span className="text-sm font-bold text-red-600">Complet</span>
+                  </div>
+                )}
+                {r.registration_status === 'closed' && (
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 bg-gray-100 border-b border-gray-200">
+                    <Lock size={15} className="text-zinc-400 shrink-0" aria-hidden="true" />
+                    <span className="text-sm font-bold text-zinc-500">Inscriptions fermées</span>
+                  </div>
+                )}
+
+                {/* Liste des formats */}
+                {r.formats && r.formats.length > 0 && (
+                  <div className="divide-y divide-gray-100">
+                    {r.formats
+                      .filter((fmt, idx, arr) =>
+                        arr.findIndex((f) => f.category === fmt.category && f.is_relay === fmt.is_relay) === idx
+                      )
+                      .map((fmt) => {
+                        const fmtPrice = fmt.price ?? r.price_euros;
+                        return (
+                          <div key={`${fmt.category}-${fmt.is_relay}`} className="flex items-center justify-between gap-3 px-5 py-3">
+                            <span className="text-sm font-bold text-zinc-800">
+                              {fmt.is_relay ? 'Relais' : categoryLabel(fmt.category)}
+                            </span>
+                            <div className="flex items-center gap-3">
+                              {fmtPrice && (
+                                <span className="text-sm font-mono font-bold text-zinc-900">
+                                  {fmtPrice}€
+                                </span>
+                              )}
+                              {r.website_url && (
+                                <a
+                                  href={r.website_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-zinc-300 hover:text-zinc-600 transition-colors"
+                                  aria-label={`S'inscrire — ${fmt.is_relay ? 'Relais' : categoryLabel(fmt.category)}`}
+                                >
+                                  <ArrowRight size={14} aria-hidden="true" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+
+                {/* Fallback : pas de formats mais un prix global */}
+                {(!r.formats || r.formats.length === 0) && r.price_euros && (
+                  <div className="flex items-center justify-between px-5 py-3">
+                    <span className="text-sm font-bold text-zinc-800">Inscription</span>
+                    <span className="text-sm font-mono font-bold text-zinc-900">{r.price_euros}€</span>
+                  </div>
+                )}
+
+                {/* CTA S'inscrire */}
+                {r.website_url && r.registration_status !== 'closed' && (
+                  <div className="px-5 py-4 border-t border-gray-100">
+                    <a
+                      href={r.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-zinc-900 text-white text-sm font-bold hover:bg-zinc-800 transition-colors duration-200"
+                    >
+                      S&apos;inscrire
+                      <ArrowRight size={14} aria-hidden="true" />
+                    </a>
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* Weather */}
             {r.avg_temp_celsius && (
