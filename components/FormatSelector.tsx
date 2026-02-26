@@ -76,23 +76,35 @@ export default function FormatSelector({
   return (
     <div>
       {/* Pills */}
-      {hasMultiple && (
+      {allFormats.length >= 1 && (
         <div className="flex gap-2 overflow-x-auto pb-3 mb-3 scrollbar-hide">
           {allFormats.map((fmt, i) => (
-            <button
-              key={i}
-              onClick={() => setSelectedIndex(i)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
-                i === selectedIndex
-                  ? 'bg-red-500 text-white'
-                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-              }`}
-            >
-              {fmt.name || categoryLabel(fmt.category)}
-              {fmt.is_relay && (
-                <span className="ml-1.5 text-[10px] opacity-60 uppercase">Relais</span>
-              )}
-            </button>
+            hasMultiple ? (
+              <button
+                key={i}
+                onClick={() => setSelectedIndex(i)}
+                className={`shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+                  i === selectedIndex
+                    ? 'bg-red-500 text-white'
+                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                }`}
+              >
+                {fmt.name || categoryLabel(fmt.category)}
+                {fmt.is_relay && (
+                  <span className="ml-1.5 text-[10px] opacity-60 uppercase">Relais</span>
+                )}
+              </button>
+            ) : (
+              <span
+                key={i}
+                className="shrink-0 px-4 py-2 rounded-full text-sm font-bold bg-red-500 text-white"
+              >
+                {fmt.name || categoryLabel(fmt.category)}
+                {fmt.is_relay && (
+                  <span className="ml-1.5 text-[10px] opacity-60 uppercase">Relais</span>
+                )}
+              </span>
+            )
           ))}
         </div>
       )}

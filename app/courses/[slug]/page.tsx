@@ -260,27 +260,6 @@ export default async function RaceDetailPage({
 
       <div className="max-w-7xl mx-auto px-6 md:px-10 mt-10">
 
-        {/* CTA TriCoach — sober dark */}
-        <div className="mb-8">
-          <a
-            href={`${TRICOACH_URL}/races/${r.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-4 px-6 py-4 bg-zinc-900 text-white font-bold rounded-2xl hover:bg-zinc-800 transition-colors duration-200"
-          >
-            <div className="flex items-center gap-3">
-              <Zap size={18} className="shrink-0" aria-hidden="true" />
-              <div>
-                <p className="text-sm font-black leading-none mb-0.5">Préparer cette course avec TriCoach</p>
-                <p className="text-xs text-white/50 font-medium">Plan d&apos;entraînement personnalisé, coaching IA</p>
-              </div>
-            </div>
-            <span className="shrink-0 bg-white text-zinc-900 rounded-full w-8 h-8 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-              <ArrowRight size={16} aria-hidden="true" />
-            </span>
-          </a>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Main content — open sections separated by lines */}
           <div className="md:col-span-2">
@@ -526,6 +505,25 @@ export default async function RaceDetailPage({
                 )}
               </div>
             )}
+
+            {/* CTA TriCoach */}
+            <a
+              href={`${TRICOACH_URL}/races/${r.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between gap-4 px-5 py-4 bg-zinc-900 text-white font-bold rounded-2xl hover:bg-zinc-800 transition-colors duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <Zap size={16} className="shrink-0" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-black leading-none mb-0.5">Préparer avec TriCoach</p>
+                  <p className="text-xs text-white/50 font-medium">Plan d&apos;entraînement personnalisé</p>
+                </div>
+              </div>
+              <span className="shrink-0 bg-white text-zinc-900 rounded-full w-7 h-7 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                <ArrowRight size={14} aria-hidden="true" />
+              </span>
+            </a>
           </div>
         </div>
       </div>
