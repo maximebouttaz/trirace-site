@@ -223,6 +223,7 @@ function emptyFields(url: string): ScrapedFields {
     avg_temp_celsius: null,
     avg_wind_kmh: null,
     registration_status: null,
+    run_laps: null,
     track_geojson: null,
     elevation_profile: null,
   }
@@ -414,6 +415,7 @@ export function scrapeFinishers(url: string, html: string): ScrapedFields {
     avg_temp_celsius: null,
     avg_wind_kmh: null,
     registration_status,
+    run_laps: null,
     track_geojson: null,
     elevation_profile: null,
   }

@@ -549,6 +549,7 @@ function emptyFields(url: string): ScrapedFields {
     avg_temp_celsius: null,
     avg_wind_kmh: null,
     registration_status: null,
+    run_laps: null,
     track_geojson: null,
     elevation_profile: null,
   }
