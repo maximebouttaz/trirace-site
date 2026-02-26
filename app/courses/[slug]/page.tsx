@@ -400,8 +400,8 @@ export default async function RaceDetailPage({
             <CTABanner raceSlug={r.slug} raceName={r.name} />
           </div>
 
-          {/* Sidebar — unified style */}
-          <div className="space-y-6">
+          {/* Sidebar — sticky */}
+          <div className="space-y-6 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
 
             {/* Inscriptions */}
             {(r.registration_status || r.website_url || (r.formats && r.formats.length > 0)) && (
