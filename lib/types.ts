@@ -60,6 +60,7 @@ export interface Race {
   swim_cutoff_minutes: number | null;
   bike_cutoff_minutes: number | null;
   run_cutoff_minutes: number | null;
+  run_laps: number | null;
   needs_review: boolean | null;
   sync_source: string | null;
   registration_status: string | null;

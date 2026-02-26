@@ -47,6 +47,7 @@ export interface AdminRaceFormData {
   swim_cutoff_minutes: string
   bike_cutoff_minutes: string
   run_cutoff_minutes: string
+  run_laps: string
   gpx_url: string
   swim_gpx_url: string
   bike_gpx_url: string
@@ -98,6 +99,7 @@ export const EMPTY_FORM_DATA: AdminRaceFormData = {
   swim_cutoff_minutes: '',
   bike_cutoff_minutes: '',
   run_cutoff_minutes: '',
+  run_laps: '',
   gpx_url: '',
   swim_gpx_url: '',
   bike_gpx_url: '',
@@ -396,6 +398,11 @@ export default function AdminRaceForm({
             <FieldLabel label="Barriere course (min)" field="run_cutoff_minutes" />
             <input type="number" className={inputClass} value={form.run_cutoff_minutes} onChange={(e) => set('run_cutoff_minutes', e.target.value)} placeholder="510" />
             <p className="text-xs text-zinc-400 mt-1">ex: 510 = 8h30</p>
+          </div>
+          <div>
+            <FieldLabel label="Boucles course (nb)" field="run_laps" />
+            <input type="number" min="1" className={inputClass} value={form.run_laps} onChange={(e) => set('run_laps', e.target.value)} placeholder="ex: 3" />
+            <p className="text-xs text-zinc-400 mt-1">Nombre de boucles du parcours run</p>
           </div>
         </div>
       </section>

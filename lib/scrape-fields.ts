@@ -29,6 +29,7 @@ export interface ScrapedFields {
   swim_cutoff_minutes: number | null
   bike_cutoff_minutes: number | null
   run_cutoff_minutes: number | null
+  run_laps: number | null
 
   // Spécificités épreuves
   swim_type: 'lac' | 'mer' | 'rivière' | 'piscine' | 'étang' | 'open water' | null
@@ -106,6 +107,7 @@ export const SCRAPABLE_FIELD_META = [
   { key: 'swim_cutoff_minutes', label: 'Barrière natation (min)' },
   { key: 'bike_cutoff_minutes', label: 'Barrière vélo (min)' },
   { key: 'run_cutoff_minutes', label: 'Barrière course (min)' },
+  { key: 'run_laps', label: 'Nombre de boucles (run)' },
   // Spécificités épreuves
   { key: 'swim_type', label: 'Type de plan d\'eau' },
   { key: 'bike_type', label: 'Type de parcours vélo' },
