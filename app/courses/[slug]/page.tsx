@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Calendar, MapPin, Users, Wind, Sun,
-  Waves, Bike, Activity, Euro, ExternalLink,
+  Waves, ExternalLink,
   ArrowRight, Zap, ChevronRight,
   Flag, Medal, Shield, TicketCheck, Lock,
 } from 'lucide-react';
@@ -15,7 +15,7 @@ import { formatDistance, formatDateLong, categoryLabel, tempLabel } from '@/lib/
 import { SITE_URL, TRICOACH_URL } from '@/lib/config';
 import CTABanner from '@/components/CTABanner';
 import RelatedRaces from '@/components/RelatedRaces';
-import RaceGPXSection from '@/components/RaceGPXSection';
+import RaceDetailBody from '@/components/RaceDetailBody';
 
 const fetchRace = cache(async (slug: string) => {
   const { data } = await supabase
@@ -285,38 +285,12 @@ export default async function RaceDetailPage({
           {/* Main content — open sections separated by lines */}
           <div className="md:col-span-2">
 
-            {/* Parcours — GPX map + discipline details (unified) */}
-            <section className="first:border-t-0 first:pt-0 first:mt-0">
-              <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4">Parcours</h3>
-              <RaceGPXSection
-                trackGeoJSON={r.track_geojson}
-                elevationProfile={r.elevation_profile}
-                disciplines={{
-                  swim: {
-                    type: r.swim_type,
-                    isWetsuitAllowed: r.is_wetsuit_allowed,
-                    cutoffMinutes: r.swim_cutoff_minutes,
-                    timeLimitHours: r.time_limit_hours,
-                  },
-                  bike: {
-                    type: r.bike_type,
-                    cutoffMinutes: r.bike_cutoff_minutes,
-                    timeLimitHours: r.time_limit_hours,
-                    elevationM: r.bike_elevation,
-                    distanceM: r.bike_distance,
-                  },
-                  run: {
-                    cutoffMinutes: r.run_cutoff_minutes,
-                    timeLimitHours: r.time_limit_hours,
-                    laps: r.run_laps,
-                  },
-                }}
-              />
-            </section>
+            {/* Format selector + KPIs + GPX + Records (réactifs) */}
+            <RaceDetailBody race={r} />
 
             {/* Description */}
             {r.description && (
-              <article className="border-t border-gray-200 pt-8 mt-8 first:border-t-0 first:pt-0 first:mt-0">
+              <article className="border-t border-gray-200 pt-8 mt-8">
                 <h2 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4">Description</h2>
                 {r.tagline && (
                   <p className="text-sm font-semibold italic text-zinc-500 border-l-2 border-zinc-300 pl-3 mb-4 leading-relaxed">&ldquo;{r.tagline}&rdquo;</p>
@@ -325,35 +299,102 @@ export default async function RaceDetailPage({
               </article>
             )}
 
-            {/* Records */}
-            {(r.record_men || r.record_women) && (
+            {/* Météo — déplacée depuis sidebar */}
+            {r.avg_temp_celsius && (
               <section className="border-t border-gray-200 pt-8 mt-8">
-                <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4">Records du parcours</h3>
-                <div>
-                  {r.record_men && (
-                    <div className="flex items-center justify-between border-b border-gray-100 py-3">
-                      <span className="text-sm text-zinc-500">Hommes</span>
-                      <span className="text-sm font-mono font-black text-zinc-900">{r.record_men}</span>
-                    </div>
-                  )}
-                  {r.record_women && (
-                    <div className="flex items-center justify-between border-b border-gray-100 py-3">
-                      <span className="text-sm text-zinc-500">Femmes</span>
-                      <span className="text-sm font-mono font-black text-zinc-900">{r.record_women}</span>
-                    </div>
+                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Météo Moyenne</h3>
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <Sun size={20} className="text-zinc-400" aria-hidden="true" />
+                    <span className="text-3xl font-mono font-black text-zinc-900">{r.avg_temp_celsius}°C</span>
+                  </div>
+                  {temp.label && (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-600">{temp.label}</span>
                   )}
                 </div>
+                {(r.avg_wind_kmh || r.avg_water_temp_celsius) && (
+                  <div className="grid grid-cols-2 gap-3 border-t border-gray-200 pt-4">
+                    {r.avg_wind_kmh && (
+                      <div className="flex flex-col items-center py-2.5">
+                        <Wind size={14} className="text-zinc-400 mb-1" aria-hidden="true" />
+                        <span className="text-sm font-mono font-bold text-zinc-700">{r.avg_wind_kmh} km/h</span>
+                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Vent</span>
+                      </div>
+                    )}
+                    {r.avg_water_temp_celsius && (
+                      <div className="flex flex-col items-center py-2.5">
+                        <Waves size={14} className="text-zinc-400 mb-1" aria-hidden="true" />
+                        <span className="text-sm font-mono font-bold text-zinc-700">{r.avg_water_temp_celsius}°C</span>
+                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Eau</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </section>
             )}
 
-            {/* Qualification */}
-            {r.qualification_for && (
+            {/* Infos pratiques — déplacées depuis sidebar */}
+            <div className="border-t border-gray-200 pt-8 mt-8">
+              <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Infos pratiques</h3>
+
+              {r.max_participants && (
+                <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Users size={14} /> Places</div>
+                  <span className="font-mono font-bold text-zinc-900">{r.max_participants.toLocaleString('fr-FR')}</span>
+                </div>
+              )}
+              {r.is_draft_legal != null && (
+                <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Flag size={14} /> Drafting</div>
+                  <span className="text-sm font-bold text-zinc-900">{r.is_draft_legal ? 'Autorisé' : 'Interdit'}</span>
+                </div>
+              )}
+              {r.registration_deadline && (
+                <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Calendar size={14} /> Inscriptions jusqu&apos;au</div>
+                  <span className="font-bold text-zinc-900 text-sm">{new Date(r.registration_deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                </div>
+              )}
+              {r.finishers_count && (
+                <div className="flex items-center justify-between border-b border-gray-100 py-3">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Users size={14} /> Finishers</div>
+                  <span className="font-mono font-bold text-zinc-900">{r.finishers_count.toLocaleString('fr-FR')} <span className="text-xs font-normal text-zinc-500">(dernière éd.)</span></span>
+                </div>
+              )}
+              {r.organizer_name && (
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Shield size={14} /> Organisateur</div>
+                  <span className="font-bold text-zinc-900 text-sm text-right max-w-[55%]">{r.organizer_name}</span>
+                </div>
+              )}
+
+              {/* Débutant Friendly badge */}
+              {r.time_limit_hours != null &&
+                r.time_limit_hours >= 10 &&
+                (r.total_elevation == null || r.total_elevation <= 500) &&
+                ['S', 'XS', 'M'].includes(r.category) && (
+                <div className="pt-3 border-t border-gray-200">
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-bold">
+                    <Medal size={13} className="text-zinc-400" /> Débutant Friendly
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Tags — déplacés depuis sidebar */}
+            {r.tags && r.tags.length > 0 && (
               <section className="border-t border-gray-200 pt-8 mt-8">
-                <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4">Qualification</h3>
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-100 text-zinc-700 font-bold text-sm">
-                  <Medal size={15} className="text-zinc-400 shrink-0" />
-                  Cette course qualifie pour : {r.qualification_for}
-                </span>
+                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-3">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {r.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs font-bold text-zinc-500 bg-gray-100 px-3 py-1.5 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </section>
             )}
 
@@ -451,105 +492,6 @@ export default async function RaceDetailPage({
                   </div>
                 )}
               </section>
-            )}
-
-            {/* Weather */}
-            {r.avg_temp_celsius && (
-              <section className="bg-gray-50/50 rounded-2xl p-5">
-                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Météo Moyenne</h3>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-2.5">
-                    <Sun size={20} className="text-zinc-400" aria-hidden="true" />
-                    <span className="text-3xl font-mono font-black text-zinc-900">{r.avg_temp_celsius}°C</span>
-                  </div>
-                  {temp.label && (
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-600">{temp.label}</span>
-                  )}
-                </div>
-                {(r.avg_wind_kmh || r.avg_water_temp_celsius) && (
-                  <div className="grid grid-cols-2 gap-3 border-t border-gray-200 pt-4">
-                    {r.avg_wind_kmh && (
-                      <div className="flex flex-col items-center py-2.5">
-                        <Wind size={14} className="text-zinc-400 mb-1" aria-hidden="true" />
-                        <span className="text-sm font-mono font-bold text-zinc-700">{r.avg_wind_kmh} km/h</span>
-                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Vent</span>
-                      </div>
-                    )}
-                    {r.avg_water_temp_celsius && (
-                      <div className="flex flex-col items-center py-2.5">
-                        <Waves size={14} className="text-zinc-400 mb-1" aria-hidden="true" />
-                        <span className="text-sm font-mono font-bold text-zinc-700">{r.avg_water_temp_celsius}°C</span>
-                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Eau</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </section>
-            )}
-
-            {/* Infos pratiques */}
-            <div className="bg-gray-50/50 rounded-2xl p-5">
-              <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Infos pratiques</h3>
-
-              {r.max_participants && (
-                <div className="flex items-center justify-between border-b border-gray-100 py-3">
-                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Users size={14} /> Places</div>
-                  <span className="font-mono font-bold text-zinc-900">{r.max_participants.toLocaleString('fr-FR')}</span>
-                </div>
-              )}
-              {r.is_draft_legal != null && (
-                <div className="flex items-center justify-between border-b border-gray-100 py-3">
-                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Flag size={14} /> Drafting</div>
-                  <span className="text-sm font-bold text-zinc-900">{r.is_draft_legal ? 'Autorisé' : 'Interdit'}</span>
-                </div>
-              )}
-              {r.registration_deadline && (
-                <div className="flex items-center justify-between border-b border-gray-100 py-3">
-                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Calendar size={14} /> Inscriptions jusqu&apos;au</div>
-                  <span className="font-bold text-zinc-900 text-sm">{new Date(r.registration_deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                </div>
-              )}
-              {r.finishers_count && (
-                <div className="flex items-center justify-between border-b border-gray-100 py-3">
-                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Users size={14} /> Finishers</div>
-                  <span className="font-mono font-bold text-zinc-900">{r.finishers_count.toLocaleString('fr-FR')} <span className="text-xs font-normal text-zinc-500">(dernière éd.)</span></span>
-                </div>
-              )}
-              {r.organizer_name && (
-                <div className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-2 text-sm text-zinc-500"><Shield size={14} /> Organisateur</div>
-                  <span className="font-bold text-zinc-900 text-sm text-right max-w-[55%]">{r.organizer_name}</span>
-                </div>
-              )}
-
-              {/* Débutant Friendly badge */}
-              {r.time_limit_hours != null &&
-                r.time_limit_hours >= 10 &&
-                (r.total_elevation == null || r.total_elevation <= 500) &&
-                ['S', 'XS', 'M'].includes(r.category) && (
-                <div className="pt-3 border-t border-gray-200">
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-bold">
-                    <Medal size={13} className="text-zinc-400" /> Débutant Friendly
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Tags */}
-            {r.tags && r.tags.length > 0 && (
-              <div className="bg-gray-50/50 rounded-2xl p-5">
-                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-3">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {r.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-xs font-bold text-zinc-500 bg-white px-3 py-1.5 rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
             )}
 
             {/* Links */}
