@@ -358,26 +358,6 @@ export default async function RaceDetailPage({
                 </div>
               )}
 
-              {/* GPX download links */}
-              {(r.swim_gpx_url || r.bike_gpx_url || r.run_gpx_url) && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {r.swim_gpx_url && (
-                    <a href={r.swim_gpx_url} download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition-colors">
-                      <Waves size={12} /> GPX Natation
-                    </a>
-                  )}
-                  {r.bike_gpx_url && (
-                    <a href={r.bike_gpx_url} download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 text-xs font-bold hover:bg-orange-100 transition-colors">
-                      <Bike size={12} /> GPX Velo
-                    </a>
-                  )}
-                  {r.run_gpx_url && (
-                    <a href={r.run_gpx_url} download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 transition-colors">
-                      <Activity size={12} /> GPX Course
-                    </a>
-                  )}
-                </div>
-              )}
 
               {/* Discipline cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
