@@ -16,7 +16,6 @@ import { SITE_URL, TRICOACH_URL } from '@/lib/config';
 import CTABanner from '@/components/CTABanner';
 import RelatedRaces from '@/components/RelatedRaces';
 import RaceGPXSection from '@/components/RaceGPXSection';
-import FormatSelector from '@/components/FormatSelector';
 
 const fetchRace = cache(async (slug: string) => {
   const { data } = await supabase
@@ -204,49 +203,26 @@ export default async function RaceDetailPage({
 
         <div className="absolute bottom-0 w-full px-6 md:px-10 pb-20 pt-16">
           <div className="max-w-7xl mx-auto">
-            {/* Badges — frosted glass */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              {r.formats && r.formats.length > 0 ? (
-                r.formats
-                  .filter((fmt) => !fmt.is_relay)
-                  .reduce<Array<{ category: string; name: string }>>((acc, fmt) => {
-                    if (!acc.some((a) => a.category === fmt.category)) acc.push(fmt);
-                    return acc;
-                  }, [])
-                  .map((fmt) => (
-                    <span
-                      key={fmt.category}
-                      className="bg-white/15 backdrop-blur-sm text-white border border-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block"
-                    >
-                      {categoryLabel(fmt.category)}
-                    </span>
-                  ))
-              ) : (
-                <span className="bg-white/15 backdrop-blur-sm text-white border border-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  {categoryLabel(r.category)}
-                </span>
-              )}
-              {r.label && (
-                <span className="bg-white/15 backdrop-blur-sm text-white border border-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  {r.label}
-                </span>
-              )}
-              {r.registration_status === 'sold_out' && (
-                <span className="bg-red-500/90 backdrop-blur-sm text-white border border-red-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  Complet
-                </span>
-              )}
-              {r.registration_status === 'closed' && (
-                <span className="bg-zinc-600/90 backdrop-blur-sm text-white border border-zinc-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  Inscriptions fermées
-                </span>
-              )}
-              {r.registration_status === 'open' && (
-                <span className="bg-emerald-500/90 backdrop-blur-sm text-white border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-                  Inscriptions ouvertes
-                </span>
-              )}
-            </div>
+            {/* Badge statut — unique, sobre */}
+            {r.registration_status && (
+              <div className="mb-3">
+                {r.registration_status === 'open' && (
+                  <span className="inline-block text-xs font-bold uppercase tracking-wider text-emerald-300 border border-emerald-400/40 px-3 py-1 rounded-full">
+                    Inscriptions ouvertes
+                  </span>
+                )}
+                {r.registration_status === 'sold_out' && (
+                  <span className="inline-block text-xs font-bold uppercase tracking-wider text-red-300 border border-red-400/40 px-3 py-1 rounded-full">
+                    Complet
+                  </span>
+                )}
+                {r.registration_status === 'closed' && (
+                  <span className="inline-block text-xs font-bold uppercase tracking-wider text-white/40 border border-white/20 px-3 py-1 rounded-full">
+                    Inscriptions fermées
+                  </span>
+                )}
+              </div>
+            )}
 
             <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-sm">
               {r.name}
@@ -280,18 +256,6 @@ export default async function RaceDetailPage({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* KPI Distances — overlapping hero */}
-      <div className="max-w-7xl mx-auto px-6 md:px-10 -mt-16 relative z-10">
-        <FormatSelector
-          formats={r.formats}
-          swimDistance={r.swim_distance}
-          bikeDistance={r.bike_distance}
-          runDistance={r.run_distance}
-          totalElevation={r.total_elevation}
-          priceEuros={r.price_euros}
-        />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-10 mt-10">

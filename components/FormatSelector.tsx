@@ -14,6 +14,9 @@ interface FormatSelectorProps {
   runDistance: number | null;
   totalElevation: number | null;
   priceEuros: number | null;
+  // Nouveaux — optionnels pour rétro-compatibilité
+  selectedIndex?: number;
+  onSelect?: (index: number) => void;
 }
 
 export default function FormatSelector({
@@ -23,6 +26,8 @@ export default function FormatSelector({
   runDistance,
   totalElevation,
   priceEuros,
+  selectedIndex: controlledIndex,
+  onSelect,
 }: FormatSelectorProps) {
   const sortByDistance = (a: Format, b: Format) => (a.total ?? 0) - (b.total ?? 0);
   const nonRelayFormats = (formats?.filter((f) => !f.is_relay) ?? []).sort(sortByDistance);
@@ -30,7 +35,12 @@ export default function FormatSelector({
   const relayFormats = (formats?.filter((f) => f.is_relay) ?? []).sort(sortByDistance);
   const allFormats = [...nonRelayFormats, ...relayFormats];
 
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [internalIndex, setInternalIndex] = useState(0);
+  const selectedIndex = controlledIndex ?? internalIndex;
+  const setSelectedIndex = (i: number) => {
+    setInternalIndex(i);
+    onSelect?.(i);
+  };
 
   // Resolve displayed values
   let swim: number | null;
