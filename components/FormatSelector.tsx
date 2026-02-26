@@ -109,44 +109,56 @@ export default function FormatSelector({
         </div>
       )}
 
-      {/* KPI cards */}
-      <div className={`grid grid-cols-2 ${showPrice ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3`}>
-        {swim != null && swim > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-            <Waves size={20} className="text-zinc-400 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-3xl font-mono font-black text-zinc-900 leading-none">{formatDistance(swim)}</p>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1.5">Natation</p>
-          </div>
-        )}
-        {bike != null && bike > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-            <Bike size={20} className="text-zinc-400 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-3xl font-mono font-black text-zinc-900 leading-none">{formatDistance(bike)}</p>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1.5">Velo</p>
-          </div>
-        )}
-        {run != null && run > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-            <Activity size={20} className="text-zinc-400 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-3xl font-mono font-black text-zinc-900 leading-none">{formatDistance(run)}</p>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1.5">Course</p>
-          </div>
-        )}
-        {elevation != null && elevation > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-            <Mountain size={20} className="text-zinc-400 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-3xl font-mono font-black text-zinc-900 leading-none">{elevation}m</p>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1.5">Denivele D+</p>
-          </div>
-        )}
-        {showPrice && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-            <Euro size={20} className="text-zinc-400 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-3xl font-mono font-black text-zinc-900 leading-none">{price}&euro;</p>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1.5">Inscription</p>
-          </div>
-        )}
-      </div>
+      {/* KPI — barre disciplines tricolore */}
+      {((swim != null && swim > 0) || (bike != null && bike > 0) || (run != null && run > 0)) && (
+        <div className="rounded-2xl overflow-hidden border border-gray-100 flex">
+          {swim != null && swim > 0 && (
+            <div className={`flex-1 bg-blue-50 px-4 py-5 text-center${(bike != null && bike > 0) || (run != null && run > 0) ? ' border-r border-white' : ''}`}>
+              <Waves size={15} className="text-blue-400 mx-auto mb-2.5" aria-hidden="true" />
+              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{formatDistance(swim)}</p>
+              <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1.5">Natation</p>
+            </div>
+          )}
+          {bike != null && bike > 0 && (
+            <div className={`flex-1 bg-amber-50 px-4 py-5 text-center${run != null && run > 0 ? ' border-r border-white' : ''}`}>
+              <Bike size={15} className="text-amber-500 mx-auto mb-2.5" aria-hidden="true" />
+              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{formatDistance(bike)}</p>
+              <p className="text-[10px] text-amber-500 font-bold uppercase tracking-widest mt-1.5">Vélo</p>
+            </div>
+          )}
+          {run != null && run > 0 && (
+            <div className="flex-1 bg-red-50 px-4 py-5 text-center">
+              <Activity size={15} className="text-red-400 mx-auto mb-2.5" aria-hidden="true" />
+              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{formatDistance(run)}</p>
+              <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest mt-1.5">Course</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Stats secondaires — dénivelé + prix */}
+      {((elevation != null && elevation > 0) || showPrice) && (
+        <div className="flex gap-2.5 mt-2.5">
+          {elevation != null && elevation > 0 && (
+            <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 flex-1">
+              <Mountain size={14} className="text-zinc-400 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="text-base font-mono font-black text-zinc-900 leading-none">{elevation}m</p>
+                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-0.5">Dénivelé D+</p>
+              </div>
+            </div>
+          )}
+          {showPrice && (
+            <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 flex-1">
+              <Euro size={14} className="text-zinc-400 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="text-base font-mono font-black text-zinc-900 leading-none">{price}€</p>
+                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-0.5">Inscription</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
