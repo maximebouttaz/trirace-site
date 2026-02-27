@@ -623,8 +623,8 @@ export default function AdminRaceForm({
           <button
             type="button"
             onClick={fetchWeather}
-            disabled={weatherLoading}
-            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-zinc-600 hover:text-zinc-900 hover:border-gray-300 transition-colors disabled:opacity-50"
+            disabled={weatherLoading || !form.latitude || !form.longitude || !form.date}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 disabled:opacity-40 transition-colors"
           >
             {weatherLoading
               ? <Loader2 size={12} className="animate-spin" />
