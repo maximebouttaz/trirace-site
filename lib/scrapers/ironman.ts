@@ -760,7 +760,8 @@ function emptyFields(url: string, format: IronmanFormat): ScrapedFields {
     bike_gpx_url: null,
     run_gpx_url: null,
     avg_water_temp_celsius: null,
-    avg_temp_celsius: null,
+    avg_temp_high_celsius: null,
+    avg_temp_low_celsius: null,
     avg_wind_kmh: null,
     registration_status: null,
     run_laps: null,
@@ -988,7 +989,8 @@ interface AthletesGuideResult {
   swim_cutoff_minutes: number | null
   bike_cutoff_minutes: number | null
   run_cutoff_minutes: number | null
-  avg_temp_celsius: number | null
+  avg_temp_high_celsius: number | null
+  avg_temp_low_celsius: number | null
   avg_water_temp_celsius: number | null
   avg_wind_kmh: number | null
   record_men: string | null
@@ -1002,7 +1004,8 @@ function parseAthletesGuideHtml(html: string): AthletesGuideResult {
     swim_cutoff_minutes: null,
     bike_cutoff_minutes: null,
     run_cutoff_minutes: null,
-    avg_temp_celsius: null,
+    avg_temp_high_celsius: null,
+    avg_temp_low_celsius: null,
     avg_water_temp_celsius: null,
     avg_wind_kmh: null,
     record_men: null,
@@ -1083,7 +1086,7 @@ function parseAthletesGuideHtml(html: string): AthletesGuideResult {
         let celsius = val
         if (m[2] && m[2].toUpperCase() === 'F') celsius = (val - 32) * 5 / 9
         if (celsius >= -10 && celsius <= 50) {
-          result.avg_temp_celsius = Math.round(celsius * 10) / 10
+          result.avg_temp_high_celsius = Math.round(celsius * 10) / 10
           break
         }
       }
@@ -1295,7 +1298,7 @@ export function scrapeIronman(
     if (guide.swim_cutoff_minutes !== null) result.swim_cutoff_minutes = guide.swim_cutoff_minutes
     if (guide.bike_cutoff_minutes !== null) result.bike_cutoff_minutes = guide.bike_cutoff_minutes
     if (guide.run_cutoff_minutes !== null) result.run_cutoff_minutes = guide.run_cutoff_minutes
-    if (guide.avg_temp_celsius !== null) result.avg_temp_celsius = guide.avg_temp_celsius
+    if (guide.avg_temp_high_celsius !== null) result.avg_temp_high_celsius = guide.avg_temp_high_celsius
     if (guide.avg_water_temp_celsius !== null) result.avg_water_temp_celsius = guide.avg_water_temp_celsius
     if (guide.avg_wind_kmh !== null) result.avg_wind_kmh = guide.avg_wind_kmh
     if (guide.record_men !== null) result.record_men = guide.record_men

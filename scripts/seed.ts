@@ -29,7 +29,7 @@ const VALID_COLUMNS = new Set([
   'bike_elevation', 'run_elevation', 'total_elevation',
   'price_euros', 'max_participants', 'time_limit_hours',
   'description', 'tagline', 'image_gradient', 'image_url',
-  'avg_temp_celsius', 'avg_water_temp_celsius', 'avg_wind_kmh',
+  'avg_temp_high_celsius', 'avg_temp_low_celsius', 'avg_water_temp_celsius', 'avg_wind_kmh',
   'record_men', 'record_women', 'tags',
   'website_url', 'finishers_url', 'status',
 ]);

@@ -40,7 +40,8 @@ export interface AdminRaceFormData {
   is_draft_legal: string
   record_men: string
   record_women: string
-  avg_temp_celsius: string
+  avg_temp_high_celsius: string
+  avg_temp_low_celsius: string
   avg_water_temp_celsius: string
   avg_wind_kmh: string
   finishers_count: string
@@ -92,7 +93,8 @@ export const EMPTY_FORM_DATA: AdminRaceFormData = {
   is_draft_legal: '',
   record_men: '',
   record_women: '',
-  avg_temp_celsius: '',
+  avg_temp_high_celsius: '',
+  avg_temp_low_celsius: '',
   avg_water_temp_celsius: '',
   avg_wind_kmh: '',
   finishers_count: '',
@@ -591,8 +593,10 @@ export default function AdminRaceForm({
         <h3 className="text-base font-semibold text-zinc-900">Meteo moyenne</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <FieldLabel label="Temperature air (C)" field="avg_temp_celsius" />
-            <input type="number" step="0.1" className={inputClass} value={form.avg_temp_celsius} onChange={(e) => set('avg_temp_celsius', e.target.value)} placeholder="24" />
+            <FieldLabel label="Temp. max (°C)" field="avg_temp_high_celsius" />
+            <input type="number" step="0.1" className={inputClass} value={form.avg_temp_high_celsius} onChange={(e) => set('avg_temp_high_celsius', e.target.value)} placeholder="28" />
+            <FieldLabel label="Temp. min (°C)" field="avg_temp_low_celsius" />
+            <input type="number" step="0.1" className={inputClass} value={form.avg_temp_low_celsius} onChange={(e) => set('avg_temp_low_celsius', e.target.value)} placeholder="18" />
           </div>
           <div>
             <FieldLabel label="Temperature eau (C)" field="avg_water_temp_celsius" />

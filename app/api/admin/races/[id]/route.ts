@@ -7,7 +7,7 @@ const ALLOWED_FIELDS = new Set([
   'bike_distance', 'run_distance', 'total_elevation', 'bike_elevation', 'run_elevation',
   'latitude', 'longitude', 'image_url', 'image_gradient', 'discipline',
   'max_participants', 'time_limit_hours',
-  'avg_temp_celsius', 'avg_water_temp_celsius', 'avg_wind_kmh',
+  'avg_temp_high_celsius', 'avg_temp_low_celsius', 'avg_water_temp_celsius', 'avg_wind_kmh',
   'record_men', 'record_women', 'finishers_url', 'finishers_count',
   'organizer_name', 'label', 'track_geojson', 'elevation_profile',
   'gpx_url', 'swim_gpx_url', 'bike_gpx_url', 'run_gpx_url',

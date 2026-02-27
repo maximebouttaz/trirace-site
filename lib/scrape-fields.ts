@@ -59,7 +59,8 @@ export interface ScrapedFields {
 
   // Météo (scrappable sur certaines pages)
   avg_water_temp_celsius: number | null
-  avg_temp_celsius: number | null
+  avg_temp_high_celsius: number | null
+  avg_temp_low_celsius: number | null
   avg_wind_kmh: number | null
 
   // Statut
@@ -130,7 +131,8 @@ export const SCRAPABLE_FIELD_META = [
   { key: 'run_gpx_url', label: 'GPX course' },
   // Météo
   { key: 'avg_water_temp_celsius', label: 'Temp. eau (°C)' },
-  { key: 'avg_temp_celsius', label: 'Temp. air (°C)' },
+  { key: 'avg_temp_high_celsius', label: 'Temp. max (°C)' },
+  { key: 'avg_temp_low_celsius', label: 'Temp. min (°C)' },
   { key: 'avg_wind_kmh', label: 'Vent moyen (km/h)' },
   // Statut
   { key: 'registration_status', label: 'Statut inscription' },

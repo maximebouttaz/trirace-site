@@ -46,27 +46,28 @@ const OPEN_METEO_BASE = 'https://archive-api.open-meteo.com/v1/archive';
 interface OpenMeteoResponse {
   daily: {
     time: string[];
-    temperature_2m_mean: (number | null)[];
+    temperature_2m_max: (number | null)[];
+    temperature_2m_min: (number | null)[];
     windspeed_10m_max: (number | null)[];
   };
 }
 
 /**
- * Fetches temperature_2m_mean and windspeed_10m_max for a given date and location.
+ * Fetches temperature_2m_max, temperature_2m_min and windspeed_10m_max for a given date and location.
  * Returns null values if the API call fails or data is missing.
  */
 async function fetchWeatherForDate(
   lat: number,
   lng: number,
   date: string // YYYY-MM-DD
-): Promise<{ temp: number | null; wind: number | null }> {
+): Promise<{ tempHigh: number | null; tempLow: number | null; wind: number | null }> {
   const url =
     `${OPEN_METEO_BASE}` +
     `?latitude=${lat}` +
     `&longitude=${lng}` +
     `&start_date=${date}` +
     `&end_date=${date}` +
-    `&daily=temperature_2m_mean,windspeed_10m_max` +
+    `&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max` +
     `&timezone=Europe%2FParis`;
 
   try {
@@ -74,15 +75,16 @@ async function fetchWeatherForDate(
       headers: { 'User-Agent': 'TriRace/1.0 (trirace.fr)' },
     });
 
-    if (!res.ok) return { temp: null, wind: null };
+    if (!res.ok) return { tempHigh: null, tempLow: null, wind: null };
 
     const data: OpenMeteoResponse = await res.json();
-    const temp = data.daily?.temperature_2m_mean?.[0] ?? null;
-    const wind = data.daily?.windspeed_10m_max?.[0] ?? null;
+    const tempHigh = data.daily?.temperature_2m_max?.[0] ?? null;
+    const tempLow  = data.daily?.temperature_2m_min?.[0] ?? null;
+    const wind     = data.daily?.windspeed_10m_max?.[0]  ?? null;
 
-    return { temp, wind };
+    return { tempHigh, tempLow, wind };
   } catch {
-    return { temp: null, wind: null };
+    return { tempHigh: null, tempLow: null, wind: null };
   }
 }
 
@@ -106,7 +108,7 @@ async function getWeather(
   lat: number,
   lng: number,
   date: string // YYYY-MM-DD
-): Promise<{ temp: number | null; wind: number | null }> {
+): Promise<{ tempHigh: number | null; tempLow: number | null; wind: number | null }> {
   const today = new Date();
   const cutoff = new Date(today);
   cutoff.setDate(cutoff.getDate() - 5); // archive lag ~5 days
@@ -124,15 +126,17 @@ async function getWeather(
     years.map((offset) => fetchWeatherForDate(lat, lng, shiftYear(date, offset)))
   );
 
-  const validTemps = results.map((r) => r.temp).filter((v): v is number => v !== null);
+  const validHighs = results.map((r) => r.tempHigh).filter((v): v is number => v !== null);
+  const validLows  = results.map((r) => r.tempLow).filter((v): v is number => v !== null);
   const validWinds = results.map((r) => r.wind).filter((v): v is number => v !== null);
 
   const avg = (arr: number[]) =>
     arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : null;
 
   return {
-    temp: avg(validTemps),
-    wind: avg(validWinds),
+    tempHigh: avg(validHighs),
+    tempLow:  avg(validLows),
+    wind:     avg(validWinds),
   };
 }
 
@@ -166,7 +170,7 @@ async function main() {
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)
     .not('date', 'is', null)
-    .is('avg_temp_celsius', null)
+    .is('avg_temp_high_celsius', null)
     .limit(5000);
 
   if (error || !races) {
@@ -193,9 +197,9 @@ async function main() {
   await runBatches(
     races as RaceRow[],
     async (race) => {
-      const { temp, wind } = await getWeather(race.latitude, race.longitude, race.date);
+      const { tempHigh, tempLow, wind } = await getWeather(race.latitude, race.longitude, race.date);
 
-      if (temp === null && wind === null) {
+      if (tempHigh === null && tempLow === null && wind === null) {
         failed++;
         process.stdout.write(
           `\r  ✓ ${done} enrichies  ✗ ${failed} échouées  (${done + failed}/${total} traitées)   `
@@ -204,7 +208,8 @@ async function main() {
       }
 
       const updatePayload: Record<string, number | null> = {
-        avg_temp_celsius: temp,
+        avg_temp_high_celsius: tempHigh,
+        avg_temp_low_celsius:  tempLow,
         avg_wind_kmh: wind,
       };
 

@@ -12,7 +12,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
   ironman: ['Ironman'],
 }
 
-const LIST_COLS = 'id, slug, name, date, city, country, region, department, category, discipline, swim_distance, bike_distance, run_distance, total_distance, total_elevation, bike_elevation, price_euros, max_participants, time_limit_hours, image_gradient, image_url, tags, avg_temp_celsius, avg_water_temp_celsius, swim_type, is_wetsuit_allowed, label, qualification_for, finishers_count, registration_deadline, registration_status, formats, latitude, longitude'
+const LIST_COLS = 'id, slug, name, date, city, country, region, department, category, discipline, swim_distance, bike_distance, run_distance, total_distance, total_elevation, bike_elevation, price_euros, max_participants, time_limit_hours, image_gradient, image_url, tags, avg_temp_high_celsius, avg_temp_low_celsius, avg_water_temp_celsius, swim_type, is_wetsuit_allowed, label, qualification_for, finishers_count, registration_deadline, registration_status, formats, latitude, longitude'
 const GEO_COLS = 'slug, name, city, country, region, department, category, date, latitude, longitude'
 
 const DEFAULT_PAGE_SIZE = 24
@@ -74,10 +74,10 @@ export async function GET(request: NextRequest) {
     if (dateFrom) geoQuery = geoQuery.gte('date', dateFrom)
     if (dateTo) geoQuery = geoQuery.lte('date', dateTo)
     if (search) geoQuery = geoQuery.or(`name.ilike.%${search}%,city.ilike.%${search}%,region.ilike.%${search}%`)
-    if (temp === 'hot') geoQuery = geoQuery.gte('avg_temp_celsius', 28)
-    else if (temp === 'pleasant') { geoQuery = geoQuery.gte('avg_temp_celsius', 22); geoQuery = geoQuery.lt('avg_temp_celsius', 28) }
-    else if (temp === 'cool') { geoQuery = geoQuery.gte('avg_temp_celsius', 16); geoQuery = geoQuery.lt('avg_temp_celsius', 22) }
-    else if (temp === 'cold') geoQuery = geoQuery.lt('avg_temp_celsius', 16)
+    if (temp === 'hot') geoQuery = geoQuery.gte('avg_temp_high_celsius', 28)
+    else if (temp === 'pleasant') { geoQuery = geoQuery.gte('avg_temp_high_celsius', 22); geoQuery = geoQuery.lt('avg_temp_high_celsius', 28) }
+    else if (temp === 'cool') { geoQuery = geoQuery.gte('avg_temp_high_celsius', 16); geoQuery = geoQuery.lt('avg_temp_high_celsius', 22) }
+    else if (temp === 'cold') geoQuery = geoQuery.lt('avg_temp_high_celsius', 16)
     if (swimType) geoQuery = geoQuery.eq('swim_type', swimType)
     if (wetsuit === 'true') geoQuery = geoQuery.eq('is_wetsuit_allowed', true)
     if (label) geoQuery = geoQuery.ilike('label', `%${label}%`)
@@ -116,10 +116,10 @@ export async function GET(request: NextRequest) {
   if (dateFrom) query = query.gte('date', dateFrom)
   if (dateTo) query = query.lte('date', dateTo)
   if (search) query = query.or(`name.ilike.%${search}%,city.ilike.%${search}%,region.ilike.%${search}%`)
-  if (temp === 'hot') query = query.gte('avg_temp_celsius', 28)
-  else if (temp === 'pleasant') { query = query.gte('avg_temp_celsius', 22); query = query.lt('avg_temp_celsius', 28) }
-  else if (temp === 'cool') { query = query.gte('avg_temp_celsius', 16); query = query.lt('avg_temp_celsius', 22) }
-  else if (temp === 'cold') query = query.lt('avg_temp_celsius', 16)
+  if (temp === 'hot') query = query.gte('avg_temp_high_celsius', 28)
+  else if (temp === 'pleasant') { query = query.gte('avg_temp_high_celsius', 22); query = query.lt('avg_temp_high_celsius', 28) }
+  else if (temp === 'cool') { query = query.gte('avg_temp_high_celsius', 16); query = query.lt('avg_temp_high_celsius', 22) }
+  else if (temp === 'cold') query = query.lt('avg_temp_high_celsius', 16)
   if (swimType) query = query.eq('swim_type', swimType)
   if (wetsuit === 'true') query = query.eq('is_wetsuit_allowed', true)
   if (label) query = query.ilike('label', `%${label}%`)

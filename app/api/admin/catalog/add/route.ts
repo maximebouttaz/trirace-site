@@ -199,7 +199,8 @@ export async function POST(req: NextRequest) {
       qualification_for: scraped.qualification_for ?? null,
 
       // Weather
-      avg_temp_celsius: toNumberOrNull(scraped.avg_temp_celsius),
+      avg_temp_high_celsius: toNumberOrNull(scraped.avg_temp_high_celsius),
+      avg_temp_low_celsius: toNumberOrNull(scraped.avg_temp_low_celsius),
       avg_water_temp_celsius: toNumberOrNull(scraped.avg_water_temp_celsius),
       avg_wind_kmh: toNumberOrNull(scraped.avg_wind_kmh),
 

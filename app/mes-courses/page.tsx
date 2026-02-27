@@ -21,7 +21,7 @@ export default function MesCoursesPage() {
     setLoading(true);
     supabase
       .from('races')
-      .select('id, slug, name, date, city, country, region, department, category, swim_distance, bike_distance, run_distance, total_distance, total_elevation, price_euros, image_gradient, image_url, tags, avg_temp_celsius, latitude, longitude')
+      .select('id, slug, name, date, city, country, region, department, category, swim_distance, bike_distance, run_distance, total_distance, total_elevation, price_euros, image_gradient, image_url, tags, avg_temp_high_celsius, avg_temp_low_celsius, latitude, longitude')
       .in('slug', favorites)
       .then(({ data }) => {
         if (data) {

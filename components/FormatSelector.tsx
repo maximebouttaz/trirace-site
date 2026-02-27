@@ -152,15 +152,23 @@ export default function FormatSelector({
 
   return (
     <div>
-      {/* En-tête — affiché seulement si plusieurs formats non-relay */}
-      {hasMultiple && (
-        <div className="mb-6">
-          <h2 className="text-2xl font-black text-zinc-900 mb-2">Choisissez votre défi</h2>
-          {tagline && (
-            <p className="text-sm text-zinc-500 leading-relaxed">{tagline}</p>
-          )}
-        </div>
-      )}
+      {/* En-tête — toujours affiché, titre adapté selon le nombre de formats */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-black text-zinc-900 mb-2">
+          {hasMultiple ? 'Choisissez votre défi' : 'Votre défi'}
+        </h2>
+        {tagline && (
+          <p className="text-sm text-zinc-500 leading-relaxed">{tagline}</p>
+        )}
+        {!hasMultiple && allFormats[0] && (
+          <p className="text-sm font-bold text-zinc-700 mt-1">
+            {allFormats[0].name || categoryLabel(allFormats[0].category)}
+            {allFormats[0].is_relay && (
+              <span className="ml-1.5 text-[10px] font-bold opacity-60 uppercase">Relais</span>
+            )}
+          </p>
+        )}
+      </div>
 
       {/* Pills — nouveau style unifié */}
       {allFormats.length >= 1 && (

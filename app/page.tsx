@@ -58,7 +58,7 @@ export default async function HomePage() {
 
   // Pick 6 "popular" races: prefer those with description, records, and weather data
   const popular = [...races]
-    .filter(r => r.description && r.avg_temp_celsius && r.date)
+    .filter(r => r.description && r.avg_temp_high_celsius && r.date)
     .sort((a, b) => {
       const scoreA = (a.record_men ? 1 : 0) + (a.record_women ? 1 : 0) + (a.max_participants ? 1 : 0) + (a.total_elevation ? 1 : 0);
       const scoreB = (b.record_men ? 1 : 0) + (b.record_women ? 1 : 0) + (b.max_participants ? 1 : 0) + (b.total_elevation ? 1 : 0);

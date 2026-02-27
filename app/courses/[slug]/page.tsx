@@ -144,7 +144,7 @@ export default async function RaceDetailPage({
     ).slice(0, needed);
     relatedRaces = [...relatedRaces, ...otherCountry];
   }
-  const temp = tempLabel(r.avg_temp_celsius);
+  const temp = tempLabel(r.avg_temp_high_celsius);
 
   // JSON-LD structured data
   const now = new Date();
@@ -305,37 +305,72 @@ export default async function RaceDetailPage({
               </article>
             )}
 
-            {/* Météo — déplacée depuis sidebar */}
-            {r.avg_temp_celsius && (
+            {/* Conditions le jour J */}
+            {(r.avg_temp_high_celsius != null || r.avg_water_temp_celsius != null || r.avg_wind_kmh != null) && (
               <section className="border-t border-gray-200 pt-8 mt-8">
-                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Météo Moyenne</h3>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-2.5">
-                    <Sun size={20} className="text-zinc-400" aria-hidden="true" />
-                    <span className="text-3xl font-mono font-black text-zinc-900">{r.avg_temp_celsius}°C</span>
-                  </div>
-                  {temp.label && (
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-600">{temp.label}</span>
+                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Conditions le jour J</h3>
+                <div className="grid grid-cols-3 gap-3">
+
+                  {/* Température */}
+                  {r.avg_temp_high_celsius != null && (
+                    <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-1">
+                      <Sun size={16} className="text-amber-400" aria-hidden="true" />
+                      <p className="text-lg font-mono font-black text-zinc-900 leading-none mt-2">
+                        {r.avg_temp_low_celsius != null
+                          ? `${r.avg_temp_low_celsius}° / ${r.avg_temp_high_celsius}°`
+                          : `${r.avg_temp_high_celsius}°`}
+                        <span className="text-sm font-bold">C</span>
+                      </p>
+                      {temp.label && (
+                        <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${temp.color}`}>
+                          {temp.label}
+                        </span>
+                      )}
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-auto">Température</p>
+                    </div>
                   )}
+
+                  {/* Eau */}
+                  {r.avg_water_temp_celsius != null && (
+                    <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-1">
+                      <Waves size={16} className="text-blue-400" aria-hidden="true" />
+                      <p className="text-lg font-mono font-black text-zinc-900 leading-none mt-2">
+                        {r.avg_water_temp_celsius}°<span className="text-sm font-bold">C</span>
+                      </p>
+                      <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        r.avg_water_temp_celsius < 18
+                          ? 'bg-cyan-50 text-cyan-600'
+                          : r.avg_water_temp_celsius < 22
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'bg-emerald-50 text-emerald-600'
+                      }`}>
+                        {r.avg_water_temp_celsius < 18 ? 'Combinaison obligatoire' : r.avg_water_temp_celsius < 22 ? 'Combinaison recommandée' : 'Eau agréable'}
+                      </span>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-auto">Eau</p>
+                    </div>
+                  )}
+
+                  {/* Vent */}
+                  {r.avg_wind_kmh != null && (
+                    <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-1">
+                      <Wind size={16} className="text-zinc-400" aria-hidden="true" />
+                      <p className="text-lg font-mono font-black text-zinc-900 leading-none mt-2">
+                        {r.avg_wind_kmh}<span className="text-sm font-bold"> km/h</span>
+                      </p>
+                      <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        r.avg_wind_kmh < 15
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : r.avg_wind_kmh < 30
+                          ? 'bg-amber-50 text-amber-600'
+                          : 'bg-red-50 text-red-600'
+                      }`}>
+                        {r.avg_wind_kmh < 15 ? 'Faible' : r.avg_wind_kmh < 30 ? 'Modéré' : 'Fort'}
+                      </span>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-auto">Vent</p>
+                    </div>
+                  )}
+
                 </div>
-                {(r.avg_wind_kmh || r.avg_water_temp_celsius) && (
-                  <div className="grid grid-cols-2 gap-3 border-t border-gray-200 pt-4">
-                    {r.avg_wind_kmh && (
-                      <div className="flex flex-col items-center py-2.5">
-                        <Wind size={14} className="text-zinc-400 mb-1" aria-hidden="true" />
-                        <span className="text-sm font-mono font-bold text-zinc-700">{r.avg_wind_kmh} km/h</span>
-                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Vent</span>
-                      </div>
-                    )}
-                    {r.avg_water_temp_celsius && (
-                      <div className="flex flex-col items-center py-2.5">
-                        <Waves size={14} className="text-zinc-400 mb-1" aria-hidden="true" />
-                        <span className="text-sm font-mono font-bold text-zinc-700">{r.avg_water_temp_celsius}°C</span>
-                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Eau</span>
-                      </div>
-                    )}
-                  </div>
-                )}
               </section>
             )}
 

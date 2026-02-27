@@ -127,7 +127,7 @@ const SECTIONS: { title: string; rows: MetricRow[] }[] = [
   {
     title: 'Météo',
     rows: [
-      { label: 'Température', icon: <Thermometer size={14} className="text-red-400" />, getValue: (r) => r.avg_temp_celsius != null ? `${r.avg_temp_celsius}°C` : '—', getNumeric: (r) => r.avg_temp_celsius },
+      { label: 'Température', icon: <Thermometer size={14} className="text-red-400" />, getValue: (r) => r.avg_temp_high_celsius != null && r.avg_temp_low_celsius != null ? `${r.avg_temp_low_celsius}° / ${r.avg_temp_high_celsius}°C` : r.avg_temp_high_celsius != null ? `${r.avg_temp_high_celsius}°C` : '—', getNumeric: (r) => r.avg_temp_high_celsius },
       { label: 'Eau', icon: <Waves size={14} className="text-blue-400" />, getValue: (r) => r.avg_water_temp_celsius != null ? `${r.avg_water_temp_celsius}°C` : '—', getNumeric: (r) => r.avg_water_temp_celsius },
       { label: 'Vent', icon: <Wind size={14} className="text-gray-400" />, getValue: (r) => r.avg_wind_kmh != null ? `${r.avg_wind_kmh} km/h` : '—', getNumeric: (r) => r.avg_wind_kmh },
     ],

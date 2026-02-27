@@ -3,7 +3,7 @@ Enrichissement météo via Open-Meteo API (gratuit, pas de clé requise).
 https://open-meteo.com/en/docs/historical-weather-api
 
 Pour chaque course avec lat/lon et date, on récupère les moyennes historiques
-(5 dernières années) : température, vent, précipitations.
+(5 dernières années) : température haute, température basse, vent.
 """
 import time
 import requests
@@ -27,8 +27,8 @@ def enrich_weather(supabase_client) -> int:
     # Récupérer les courses sans météo mais avec coordonnées
     result = (
         supabase_client.table("races")
-        .select("id, slug, date, latitude, longitude, avg_temp_celsius")
-        .is_("avg_temp_celsius", "null")
+        .select("id, slug, date, latitude, longitude, avg_temp_high_celsius")
+        .is_("avg_temp_high_celsius", "null")
         .not_.is_("latitude", "null")
         .not_.is_("longitude", "null")
         .not_.is_("date", "null")
@@ -50,7 +50,12 @@ def enrich_weather(supabase_client) -> int:
             if weather:
                 supabase_client.table("races").update(weather).eq("id", race["id"]).execute()
                 enriched += 1
-                print(f"  ✓ {race['slug']} → {weather.get('avg_temp_celsius')}°C, vent {weather.get('avg_wind_kmh')} km/h")
+                print(
+                    f"  ✓ {race['slug']} → "
+                    f"high {weather.get('avg_temp_high_celsius')}°C / "
+                    f"low {weather.get('avg_temp_low_celsius')}°C, "
+                    f"vent {weather.get('avg_wind_kmh')} km/h"
+                )
 
         except Exception as e:
             print(f"  ✗ {race['slug']} : {e}")
@@ -64,7 +69,7 @@ def enrich_weather(supabase_client) -> int:
 def fetch_historical_weather(lat: float, lon: float, race_date: str) -> Optional[dict]:
     """
     Calcule la météo moyenne sur les 5 dernières années à la même date.
-    Retourne un dict avec avg_temp_celsius, avg_wind_kmh.
+    Retourne un dict avec avg_temp_high_celsius, avg_temp_low_celsius, avg_wind_kmh.
     """
     try:
         race_dt = date.fromisoformat(race_date)
@@ -72,9 +77,9 @@ def fetch_historical_weather(lat: float, lon: float, race_date: str) -> Optional
         return None
 
     today = date.today()
-    temps = []
+    temps_high = []
+    temps_low = []
     winds = []
-    water_temps = []
 
     for years_back in range(1, HISTORY_YEARS + 1):
         target_year = race_dt.year - years_back
@@ -94,7 +99,7 @@ def fetch_historical_weather(lat: float, lon: float, race_date: str) -> Optional
             "longitude": lon,
             "start_date": window_start.isoformat(),
             "end_date": min(window_end, today).isoformat(),
-            "daily": "temperature_2m_mean,wind_speed_10m_max",
+            "daily": "temperature_2m_max,temperature_2m_min,wind_speed_10m_max",
             "wind_speed_unit": "kmh",
             "timezone": "auto",
         }
@@ -105,11 +110,14 @@ def fetch_historical_weather(lat: float, lon: float, race_date: str) -> Optional
             data = resp.json()
 
             daily = data.get("daily", {})
-            temp_list = [t for t in (daily.get("temperature_2m_mean") or []) if t is not None]
+            high_list = [t for t in (daily.get("temperature_2m_max") or []) if t is not None]
+            low_list  = [t for t in (daily.get("temperature_2m_min") or []) if t is not None]
             wind_list = [w for w in (daily.get("wind_speed_10m_max") or []) if w is not None]
 
-            if temp_list:
-                temps.append(sum(temp_list) / len(temp_list))
+            if high_list:
+                temps_high.append(sum(high_list) / len(high_list))
+            if low_list:
+                temps_low.append(sum(low_list) / len(low_list))
             if wind_list:
                 winds.append(sum(wind_list) / len(wind_list))
 
@@ -118,12 +126,13 @@ def fetch_historical_weather(lat: float, lon: float, race_date: str) -> Optional
 
         time.sleep(0.2)
 
-    if not temps:
+    if not temps_high:
         return None
 
     result = {
-        "avg_temp_celsius": round(sum(temps) / len(temps), 1),
-        "avg_wind_kmh": round(sum(winds) / len(winds), 1) if winds else None,
+        "avg_temp_high_celsius": round(sum(temps_high) / len(temps_high), 1),
+        "avg_temp_low_celsius":  round(sum(temps_low) / len(temps_low), 1) if temps_low else None,
+        "avg_wind_kmh":          round(sum(winds) / len(winds), 1) if winds else None,
     }
 
     return result
