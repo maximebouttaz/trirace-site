@@ -624,6 +624,7 @@ export default function AdminRaceForm({
             type="button"
             onClick={fetchWeather}
             disabled={weatherLoading || !form.latitude || !form.longitude || !form.date}
+            title="Renseignez la date et les coordonnées GPS d'abord"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 disabled:opacity-40 transition-colors"
           >
             {weatherLoading
