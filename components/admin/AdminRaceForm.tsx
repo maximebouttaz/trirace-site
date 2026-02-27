@@ -177,14 +177,16 @@ export default function AdminRaceForm({
     const timer = setTimeout(async () => {
       setIsGeocoding(true)
       try {
-        const params = new URLSearchParams({
-          city: form.city.trim(),
+        const raw: Record<string, string> = {
+          city:    form.city.trim(),
           country: form.country || 'France',
-          format: 'json',
-          limit: '1',
-        })
+          format:  'json',
+          limit:   '1',
+        }
+        if (form.region)     raw.state  = form.region.trim()
+        if (form.department) raw.county = form.department.trim()
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?${params}`,
+          `https://nominatim.openstreetmap.org/search?${new URLSearchParams(raw)}`,
           { headers: { 'User-Agent': 'TriRace/1.0 admin-form' } }
         )
         if (res.ok) {
@@ -192,7 +194,7 @@ export default function AdminRaceForm({
           if (data?.[0]) {
             setForm(prev => ({
               ...prev,
-              latitude: String(data[0].lat),
+              latitude:  String(data[0].lat),
               longitude: String(data[0].lon),
             }))
             setGeocodeResult(data[0].display_name)
@@ -207,7 +209,7 @@ export default function AdminRaceForm({
 
     return () => clearTimeout(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.city, form.country])
+  }, [form.city, form.country, form.region, form.department])
 
   function set(field: keyof AdminRaceFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -250,21 +252,23 @@ export default function AdminRaceForm({
     setGeocoding(true)
     setGeocodeResult(null)
     try {
-      const params = new URLSearchParams({
-        city: form.city.trim(),
+      const raw: Record<string, string> = {
+        city:    form.city.trim(),
         country: form.country || 'France',
-        format: 'json',
-        limit: '1',
-      })
+        format:  'json',
+        limit:   '1',
+      }
+      if (form.region)     raw.state  = form.region.trim()
+      if (form.department) raw.county = form.department.trim()
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?${params}`,
+        `https://nominatim.openstreetmap.org/search?${new URLSearchParams(raw)}`,
         { headers: { 'User-Agent': 'TriRace/1.0' } }
       )
       const data = await res.json()
       if (data?.[0]) {
         setForm((prev) => ({
           ...prev,
-          latitude: String(data[0].lat),
+          latitude:  String(data[0].lat),
           longitude: String(data[0].lon),
         }))
         setGeocodeResult(data[0].display_name)
