@@ -166,9 +166,8 @@ export default function AdminRaceForm({
   const [generatingDesc, setGeneratingDesc] = useState(false)
   const [weatherLoading, setWeatherLoading] = useState(false)
   const [weatherError, setWeatherError] = useState<string | null>(null)
-  const [waterTempLoading,   setWaterTempLoading]   = useState(false)
-  const [waterTempError,     setWaterTempError]     = useState<string | null>(null)
-  const [waterTempTriggered, setWaterTempTriggered] = useState(false)
+  const [waterTempLoading, setWaterTempLoading] = useState(false)
+  const [waterTempError,   setWaterTempError]   = useState<string | null>(null)
 
   useEffect(() => {
     if (form.latitude && form.longitude) return
@@ -328,18 +327,22 @@ export default function AdminRaceForm({
   }
 
   async function fetchWaterTemp() {
-    if (!raceId) return
+    if (!raceId || !form.latitude || !form.longitude || !form.date) return
     setWaterTempLoading(true)
     setWaterTempError(null)
-    setWaterTempTriggered(false)
     try {
-      const res = await fetch(`/api/admin/water-temp/${raceId}`, { method: 'POST' })
+      const params = new URLSearchParams({
+        lat:  form.latitude,
+        lng:  form.longitude,
+        date: form.date,
+      })
+      const res = await fetch(`/api/admin/water-temp/${raceId}?${params}`)
       const data = await res.json()
       if (!res.ok) {
-        setWaterTempError(data.error ?? 'Erreur lors du déclenchement.')
+        setWaterTempError(data.error ?? 'Aucune donnée disponible.')
         return
       }
-      setWaterTempTriggered(true)
+      set('avg_water_temp_celsius', String(data.avg_water_temp_celsius))
     } catch {
       setWaterTempError("Impossible de contacter l'API.")
     } finally {
@@ -711,15 +714,15 @@ export default function AdminRaceForm({
               <button
                 type="button"
                 onClick={fetchWaterTemp}
-                disabled={waterTempLoading}
-                title="Déclenche un calcul via Copernicus Marine (~2-3 min)"
+                disabled={waterTempLoading || !form.latitude || !form.longitude || !form.date}
+                title="Calcule via Open-Meteo Marine (moyenne 3 ans)"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 disabled:opacity-40 transition-colors"
               >
                 {waterTempLoading
                   ? <Loader2 size={12} className="animate-spin" />
                   : <Sparkles size={12} />
                 }
-                {waterTempLoading ? 'Déclenchement…' : 'Récupérer temp. eau'}
+                {waterTempLoading ? 'Calcul…' : 'Récupérer temp. eau'}
               </button>
             )}
           </div>
@@ -727,11 +730,6 @@ export default function AdminRaceForm({
             <p className="flex items-center gap-1.5 text-xs text-red-500 mb-2">
               <AlertCircle size={12} />
               {waterTempError}
-            </p>
-          )}
-          {waterTempTriggered && (
-            <p className="text-xs text-violet-600 mb-2">
-              ✓ Calcul déclenché — actualise la page dans 2-3 min pour voir le résultat.
             </p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
