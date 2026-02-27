@@ -29,7 +29,7 @@ async function fetchWeatherForDate(
     `&timezone=auto`
 
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'TriRace/1.0' } })
+    const res = await fetch(url, { headers: { 'User-Agent': 'TriRace/1.0' }, signal: AbortSignal.timeout(8000) })
     if (!res.ok) return { tempHigh: null, tempLow: null, wind: null }
     const data = await res.json()
     const highs: number[] = (data.daily?.temperature_2m_max ?? []).filter((v: unknown) => v != null)
@@ -48,6 +48,16 @@ export async function GET(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) {
     return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 })
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single<{ role: string }>()
+
+  if (profile?.role !== 'admin') {
+    return NextResponse.json({ error: 'Accès refusé.' }, { status: 403 })
   }
 
   // Params
