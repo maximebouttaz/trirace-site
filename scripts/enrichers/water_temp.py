@@ -164,8 +164,7 @@ def main():
         copernicusmarine.login(
             username=svc_user,
             password=svc_pass,
-            overwrite=True,
-            check_credentials_valid=False,
+            overwrite_configuration_file=True,
         )
         print("[WATER_TEMP] Login OK")
     except Exception as e:
