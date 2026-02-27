@@ -63,14 +63,14 @@ def fetch_water_temp(lat: float, lon: float, race_date: str) -> Optional[float]:
                 maximum_longitude = lon + RADIUS_DEG,
                 start_datetime    = start.isoformat() + "T00:00:00",
                 end_datetime      = end.isoformat()   + "T23:59:59",
-                minimum_depth     = 0.0,
-                maximum_depth     = DEPTH_MAX,
                 username          = cmems_user,
                 password          = cmems_pass,
             )
 
-            values = ds["thetao"].values.flatten()
-            valid  = values[~np.isnan(values)]
+            # Sélectionner la couche la plus superficielle et forcer le chargement
+            surface = ds["thetao"].isel(depth=0).load()
+            values  = surface.values.flatten()
+            valid   = values[~np.isnan(values)]
             if len(valid) > 0:
                 temps.append(float(np.mean(valid)))
 
