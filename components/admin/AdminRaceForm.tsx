@@ -162,6 +162,7 @@ export default function AdminRaceForm({
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [geocoding, setGeocoding] = useState(false)
   const [isGeocoding, setIsGeocoding] = useState(false)
+  const [geocodeResult, setGeocodeResult] = useState<string | null>(null)
   const [generatingDesc, setGeneratingDesc] = useState(false)
   const [weatherLoading, setWeatherLoading] = useState(false)
   const [weatherError, setWeatherError] = useState<string | null>(null)
@@ -176,9 +177,14 @@ export default function AdminRaceForm({
     const timer = setTimeout(async () => {
       setIsGeocoding(true)
       try {
-        const query = `${form.city.trim()}, ${form.country || 'France'}`
+        const params = new URLSearchParams({
+          city: form.city.trim(),
+          country: form.country || 'France',
+          format: 'json',
+          limit: '1',
+        })
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
+          `https://nominatim.openstreetmap.org/search?${params}`,
           { headers: { 'User-Agent': 'TriRace/1.0 admin-form' } }
         )
         if (res.ok) {
@@ -189,6 +195,7 @@ export default function AdminRaceForm({
               latitude: String(data[0].lat),
               longitude: String(data[0].lon),
             }))
+            setGeocodeResult(data[0].display_name)
           }
         }
       } catch {
@@ -241,10 +248,16 @@ export default function AdminRaceForm({
   async function handleGeocode() {
     if (!form.city.trim()) return
     setGeocoding(true)
+    setGeocodeResult(null)
     try {
-      const q = `${form.city}, ${form.country || 'France'}`
+      const params = new URLSearchParams({
+        city: form.city.trim(),
+        country: form.country || 'France',
+        format: 'json',
+        limit: '1',
+      })
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+        `https://nominatim.openstreetmap.org/search?${params}`,
         { headers: { 'User-Agent': 'TriRace/1.0' } }
       )
       const data = await res.json()
@@ -254,9 +267,12 @@ export default function AdminRaceForm({
           latitude: String(data[0].lat),
           longitude: String(data[0].lon),
         }))
+        setGeocodeResult(data[0].display_name)
+      } else {
+        setGeocodeResult('Aucun résultat — vérifiez la ville et le pays.')
       }
     } catch {
-      // ignore
+      setGeocodeResult('Erreur de connexion à Nominatim.')
     } finally {
       setGeocoding(false)
     }
@@ -564,6 +580,11 @@ export default function AdminRaceForm({
             </button>
           </div>
         </div>
+        {geocodeResult && (
+          <p className="text-xs text-zinc-500 truncate">
+            <span className="font-medium text-zinc-700">Résultat :</span> {geocodeResult}
+          </p>
+        )}
       </section>
 
       {/* Section 5: Contenu */}
