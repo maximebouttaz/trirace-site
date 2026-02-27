@@ -53,7 +53,7 @@ export default function ElevationProfile({ data, accentColor = '#dc2626' }: Elev
   return (
     <div>
       {/* Stats bar */}
-      <div className="flex items-center gap-4 mb-4 text-xs">
+      <div className="flex flex-wrap items-center gap-2 mb-4 text-xs">
         <div className="flex items-center gap-1.5 bg-white border border-gray-100 rounded-xl px-3 py-2">
           <TrendingDown size={13} className="text-blue-500" />
           <span className="text-zinc-400 font-medium">Min</span>

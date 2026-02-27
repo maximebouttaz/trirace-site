@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Waves, Bike, Activity, Mountain, Euro } from 'lucide-react';
 import type { Race } from '@/lib/types';
 import { formatDistance, categoryLabel } from '@/lib/utils';
@@ -43,6 +43,81 @@ export default function FormatSelector({
     setInternalIndex(i);
     onSelect?.(i);
   };
+
+  // Liquid pill indicator — two-phase stretch & settle
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const prevIndexRef = useRef(selectedIndex);
+  const isFirstRender = useRef(true);
+  const settleTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const getButtonRect = useCallback((index: number) => {
+    const btn = buttonRefs.current[index];
+    const container = containerRef.current;
+    if (!btn || !container) return null;
+    const cRect = container.getBoundingClientRect();
+    const bRect = btn.getBoundingClientRect();
+    return { left: bRect.left - cRect.left, width: bRect.width };
+  }, []);
+
+  // Initial position (no animation)
+  useEffect(() => {
+    const rect = getButtonRect(selectedIndex);
+    if (rect && pillRef.current) {
+      pillRef.current.style.transition = 'none';
+      pillRef.current.style.left = `${rect.left}px`;
+      pillRef.current.style.width = `${rect.width}px`;
+      isFirstRender.current = false;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Liquid animation on index change
+  useEffect(() => {
+    if (isFirstRender.current) return;
+    const prev = prevIndexRef.current;
+    prevIndexRef.current = selectedIndex;
+    if (prev === selectedIndex) return;
+
+    const pill = pillRef.current;
+    if (!pill) return;
+
+    const prevRect = getButtonRect(prev);
+    const nextRect = getButtonRect(selectedIndex);
+    if (!prevRect || !nextRect) return;
+
+    // Phase 1: stretch — pill expands to cover both old & new positions
+    const stretchLeft = Math.min(prevRect.left, nextRect.left);
+    const stretchRight = Math.max(prevRect.left + prevRect.width, nextRect.left + nextRect.width);
+    pill.style.transition = 'left 180ms cubic-bezier(0.4, 0, 0.2, 1), width 180ms cubic-bezier(0.4, 0, 0.2, 1)';
+    pill.style.left = `${stretchLeft}px`;
+    pill.style.width = `${stretchRight - stretchLeft}px`;
+
+    // Phase 2: settle — pill contracts to the target
+    clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      pill.style.transition = 'left 260ms cubic-bezier(0.0, 0.7, 0.3, 1), width 260ms cubic-bezier(0.0, 0.7, 0.3, 1)';
+      pill.style.left = `${nextRect.left}px`;
+      pill.style.width = `${nextRect.width}px`;
+    }, 160);
+
+    return () => clearTimeout(settleTimer.current);
+  }, [selectedIndex, getButtonRect]);
+
+  // Recalculate on resize
+  useEffect(() => {
+    const onResize = () => {
+      const rect = getButtonRect(selectedIndex);
+      if (rect && pillRef.current) {
+        pillRef.current.style.transition = 'none';
+        pillRef.current.style.left = `${rect.left}px`;
+        pillRef.current.style.width = `${rect.width}px`;
+      }
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [selectedIndex, getButtonRect]);
 
   // Resolve displayed values
   let swim: number | null;
@@ -91,14 +166,23 @@ export default function FormatSelector({
       {allFormats.length >= 1 && (
         <div className="mb-5">
           {hasMultiple ? (
-            <div className="inline-flex gap-1 bg-gray-100 rounded-2xl p-1">
+            <div
+              ref={containerRef}
+              className="relative inline-flex gap-1 bg-gray-100 rounded-2xl p-1 max-w-full overflow-x-auto scrollbar-hide"
+            >
+              {/* Liquid sliding indicator */}
+              <div
+                ref={pillRef}
+                className="absolute top-1 h-[calc(100%-8px)] bg-white rounded-xl shadow-sm pointer-events-none"
+              />
               {allFormats.map((fmt, i) => (
                 <button
                   key={i}
+                  ref={(el) => { buttonRefs.current[i] = el; }}
                   onClick={() => setSelectedIndex(i)}
-                  className={`px-5 py-2 rounded-xl text-sm font-bold transition-all duration-150 ${
+                  className={`relative z-10 px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 whitespace-nowrap ${
                     i === selectedIndex
-                      ? 'bg-white shadow-sm text-zinc-900'
+                      ? 'text-zinc-900'
                       : 'text-zinc-500 hover:text-zinc-700'
                   }`}
                 >
@@ -120,36 +204,9 @@ export default function FormatSelector({
         </div>
       )}
 
-      {/* KPI — barre disciplines tricolore */}
-      {((swim != null && swim > 0) || (bike != null && bike > 0) || (run != null && run > 0)) && (
-        <div className="rounded-2xl overflow-hidden border border-gray-100 flex">
-          {swim != null && swim > 0 && (
-            <div className={`flex-1 bg-blue-50 px-4 py-5 text-center${(bike != null && bike > 0) || (run != null && run > 0) ? ' border-r border-white' : ''}`}>
-              <Waves size={15} className="text-blue-400 mx-auto mb-2.5" aria-hidden="true" />
-              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{formatDistance(swim)}</p>
-              <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1.5">Natation</p>
-            </div>
-          )}
-          {bike != null && bike > 0 && (
-            <div className={`flex-1 bg-amber-50 px-4 py-5 text-center${run != null && run > 0 ? ' border-r border-white' : ''}`}>
-              <Bike size={15} className="text-amber-500 mx-auto mb-2.5" aria-hidden="true" />
-              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{formatDistance(bike)}</p>
-              <p className="text-[10px] text-amber-500 font-bold uppercase tracking-widest mt-1.5">Vélo</p>
-            </div>
-          )}
-          {run != null && run > 0 && (
-            <div className="flex-1 bg-red-50 px-4 py-5 text-center">
-              <Activity size={15} className="text-red-400 mx-auto mb-2.5" aria-hidden="true" />
-              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{formatDistance(run)}</p>
-              <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest mt-1.5">Course</p>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Stats secondaires — dénivelé + prix */}
       {((elevation != null && elevation > 0) || showPrice) && (
-        <div className="flex gap-2.5 mt-2.5">
+        <div className="flex gap-2.5 mt-0">
           {elevation != null && elevation > 0 && (
             <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 flex-1">
               <Mountain size={14} className="text-zinc-400 shrink-0" aria-hidden="true" />

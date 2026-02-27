@@ -4,18 +4,51 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Calendar, MapPin, Users, Wind, Sun,
+  Calendar, Users, Wind, Sun,
   Waves, ExternalLink,
   ArrowRight, Zap, ChevronRight,
   Flag, Medal, Shield, Lock,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Race } from '@/lib/types';
-import { formatDistance, formatDateLong, categoryLabel, tempLabel } from '@/lib/utils';
+import { formatDistance, formatDate, categoryLabel, tempLabel } from '@/lib/utils';
 import { SITE_URL, TRICOACH_URL } from '@/lib/config';
 import CTABanner from '@/components/CTABanner';
 import RelatedRaces from '@/components/RelatedRaces';
 import RaceDetailBody from '@/components/RaceDetailBody';
+import TerrainIcons from '@/components/TerrainIcons';
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  'France': '\u{1F1EB}\u{1F1F7}',
+  'Spain': '\u{1F1EA}\u{1F1F8}', 'Espagne': '\u{1F1EA}\u{1F1F8}',
+  'Italy': '\u{1F1EE}\u{1F1F9}', 'Italie': '\u{1F1EE}\u{1F1F9}',
+  'Germany': '\u{1F1E9}\u{1F1EA}', 'Allemagne': '\u{1F1E9}\u{1F1EA}',
+  'Switzerland': '\u{1F1E8}\u{1F1ED}', 'Suisse': '\u{1F1E8}\u{1F1ED}',
+  'Belgium': '\u{1F1E7}\u{1F1EA}', 'Belgique': '\u{1F1E7}\u{1F1EA}',
+  'United Kingdom': '\u{1F1EC}\u{1F1E7}', 'Royaume-Uni': '\u{1F1EC}\u{1F1E7}',
+  'Portugal': '\u{1F1F5}\u{1F1F9}',
+  'Austria': '\u{1F1E6}\u{1F1F9}', 'Autriche': '\u{1F1E6}\u{1F1F9}',
+  'Netherlands': '\u{1F1F3}\u{1F1F1}', 'Pays-Bas': '\u{1F1F3}\u{1F1F1}',
+  'Denmark': '\u{1F1E9}\u{1F1F0}', 'Danemark': '\u{1F1E9}\u{1F1F0}',
+  'Sweden': '\u{1F1F8}\u{1F1EA}', 'Suède': '\u{1F1F8}\u{1F1EA}',
+  'Norway': '\u{1F1F3}\u{1F1F4}', 'Norvège': '\u{1F1F3}\u{1F1F4}',
+  'Finland': '\u{1F1EB}\u{1F1EE}', 'Finlande': '\u{1F1EB}\u{1F1EE}',
+  'Greece': '\u{1F1EC}\u{1F1F7}', 'Grèce': '\u{1F1EC}\u{1F1F7}',
+  'Croatia': '\u{1F1ED}\u{1F1F7}', 'Croatie': '\u{1F1ED}\u{1F1F7}',
+  'Slovenia': '\u{1F1F8}\u{1F1EE}', 'Slovénie': '\u{1F1F8}\u{1F1EE}',
+  'Poland': '\u{1F1F5}\u{1F1F1}', 'Pologne': '\u{1F1F5}\u{1F1F1}',
+  'Czech Republic': '\u{1F1E8}\u{1F1FF}', 'Tchéquie': '\u{1F1E8}\u{1F1FF}',
+  'Hungary': '\u{1F1ED}\u{1F1FA}', 'Hongrie': '\u{1F1ED}\u{1F1FA}',
+  'Ireland': '\u{1F1EE}\u{1F1EA}', 'Irlande': '\u{1F1EE}\u{1F1EA}',
+  'Luxembourg': '\u{1F1F1}\u{1F1FA}',
+  'Monaco': '\u{1F1F2}\u{1F1E8}',
+  'USA': '\u{1F1FA}\u{1F1F8}', 'États-Unis': '\u{1F1FA}\u{1F1F8}',
+};
+
+function countryFlag(country: string | null): string {
+  if (!country) return '\u{1F3C1}';
+  return COUNTRY_FLAGS[country] ?? '\u{1F3C1}';
+}
 
 const fetchRace = cache(async (slug: string) => {
   const { data } = await supabase
@@ -224,6 +257,10 @@ export default async function RaceDetailPage({
               </div>
             )}
 
+            <p className="text-sm font-semibold uppercase tracking-wider text-white/80 mb-3">
+              {formatDate(r.date)}
+            </p>
+
             <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-sm">
               {r.name}
             </h1>
@@ -236,29 +273,18 @@ export default async function RaceDetailPage({
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-5 text-white/60 text-sm">
               <span className="flex items-center gap-1.5">
-                <Calendar size={14} aria-hidden="true" />
-                {formatDateLong(r.date)}
-              </span>
-              <span aria-hidden="true">·</span>
-              <span className="flex items-center gap-1.5">
-                <MapPin size={14} aria-hidden="true" />
+                <span aria-hidden="true">{countryFlag(r.country)}</span>
                 {r.location}
               </span>
-              {r.max_participants && (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span className="flex items-center gap-1.5">
-                    <Users size={14} aria-hidden="true" />
-                    {r.max_participants.toLocaleString('fr-FR')} places
-                  </span>
-                </>
-              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-10 mt-10">
+      {/* Terrain type icons */}
+      <TerrainIcons swimType={r.swim_type} bikeType={r.bike_type} runType="Plat" />
+
+      <div className="max-w-7xl mx-auto px-6 md:px-10 mt-4">
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Main content — open sections separated by lines */}

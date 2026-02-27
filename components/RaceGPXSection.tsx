@@ -7,7 +7,7 @@ import { MapPin, Waves, Bike, Activity } from 'lucide-react';
 const RaceTrackMap = dynamic(() => import('@/components/RaceTrackMap'), { ssr: false });
 const ElevationProfile = dynamic(() => import('@/components/ElevationProfile'), { ssr: false });
 
-type Segment = 'swim' | 'bike' | 'run';
+export type Segment = 'swim' | 'bike' | 'run';
 
 const SEGMENT_CONFIG: { key: Segment; label: string; icon: typeof Waves; activeClass: string; lineColor: string }[] = [
   { key: 'swim', label: 'Natation',      icon: Waves,    activeClass: 'border-cyan-500 text-cyan-700 bg-cyan-50',   lineColor: '#06b6d4' },
@@ -37,6 +37,12 @@ interface RaceGPXSectionProps {
   trackGeoJSON?: SegmentedTrack | Record<string, unknown> | null;
   elevationProfile?: SegmentedElevation | Array<{ distance: number; elevation: number }> | null;
   disciplines: DisciplineData;
+  activeSegment?: Segment;
+  onSegmentChange?: (segment: Segment) => void;
+  /** Hide the discipline buttons (rendered externally) */
+  hideDisciplineButtons?: boolean;
+  /** Skip outer container — parent provides its own wrapper */
+  noOuterWrapper?: boolean;
 }
 
 function isLegacyFormat(obj: Record<string, unknown>): boolean {
@@ -48,7 +54,7 @@ function formatDistance(meters: number): string {
   return meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
 }
 
-export default function RaceGPXSection({ trackGeoJSON, elevationProfile, disciplines }: RaceGPXSectionProps) {
+export default function RaceGPXSection({ trackGeoJSON, elevationProfile, disciplines, activeSegment: controlledSegment, onSegmentChange, hideDisciplineButtons, noOuterWrapper }: RaceGPXSectionProps) {
   const normalizedTrack = useMemo((): SegmentedTrack => {
     if (!trackGeoJSON) return {};
     if (isLegacyFormat(trackGeoJSON as Record<string, unknown>)) {
@@ -63,7 +69,12 @@ export default function RaceGPXSection({ trackGeoJSON, elevationProfile, discipl
     return elevationProfile as SegmentedElevation;
   }, [elevationProfile]);
 
-  const [activeSegment, setActiveSegment] = useState<Segment>('swim');
+  const [internalSegment, setInternalSegment] = useState<Segment>('swim');
+  const activeSegment = controlledSegment ?? internalSegment;
+  const setActiveSegment = (s: Segment) => {
+    setInternalSegment(s);
+    onSegmentChange?.(s);
+  };
 
   const activeTrack = normalizedTrack[activeSegment];
   const activeElevation = normalizedElevation?.[activeSegment];
@@ -128,15 +139,15 @@ export default function RaceGPXSection({ trackGeoJSON, elevationProfile, discipl
     },
   ];
 
-  return (
-    <section className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
-      {hasAnyGPS && (
+  const innerContent = (
+    <>
+      {hasAnyGPS && !noOuterWrapper && (
         <h3 className="font-bold text-zinc-900 mb-4 flex items-center gap-2">
           <MapPin size={18} className="text-red-500" aria-hidden="true" /> Parcours GPS
         </h3>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className={hideDisciplineButtons ? 'space-y-3' : 'grid grid-cols-1 md:grid-cols-2 gap-5'}>
         {/* Colonne gauche — carte + dénivelé */}
         <div className="flex flex-col gap-3">
           {activeTrack ? (
@@ -184,46 +195,56 @@ export default function RaceGPXSection({ trackGeoJSON, elevationProfile, discipl
         </div>
 
         {/* Colonne droite — cartes disciplines cliquables */}
-        <div className="flex flex-col gap-3">
-          {disciplineCards.map((card) => {
-            const Icon = card.icon;
-            const isActive = activeSegment === card.key;
-            const hasTrack = !!normalizedTrack[card.key];
-            return (
-              <button
-                key={card.key}
-                onClick={() => setActiveSegment(card.key)}
-                className={`
-                  flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all
-                  ${isActive
-                    ? `${card.activeBg} ${card.activeBorder}`
-                    : 'bg-white border-gray-200 hover:border-gray-300'}
-                `}
-              >
-                <span className={`w-11 h-11 rounded-xl ${card.iconBg} flex items-center justify-center shrink-0`}>
-                  <Icon size={18} className="text-white" aria-hidden="true" />
-                </span>
-                <div className="min-w-0">
-                  <p className={`font-bold text-sm leading-none mb-1 ${isActive ? card.activeText : 'text-zinc-800'}`}>
-                    {card.label}
-                    {hasTrack && (
-                      <span className={`ml-2 text-[10px] font-bold uppercase tracking-wider ${isActive ? card.activeSubText : 'text-zinc-400'}`}>GPS</span>
-                    )}
-                  </p>
-                  <p className={`text-sm font-mono font-bold ${isActive ? card.activeText : 'text-zinc-900'}`}>
-                    {card.distanceM ? formatDistance(card.distanceM) : '—'}
-                    {card.subLabel && (
-                      <span className={`ml-1.5 text-xs font-normal ${isActive ? card.activeSubText : 'text-zinc-400'}`}>
-                        · {card.subLabel}
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {!hideDisciplineButtons && (
+          <div className="flex flex-col gap-3">
+            {disciplineCards.map((card) => {
+              const Icon = card.icon;
+              const isActive = activeSegment === card.key;
+              const hasTrack = !!normalizedTrack[card.key];
+              return (
+                <button
+                  key={card.key}
+                  onClick={() => setActiveSegment(card.key)}
+                  className={`
+                    flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all
+                    ${isActive
+                      ? `${card.activeBg} ${card.activeBorder}`
+                      : 'bg-white border-gray-200 hover:border-gray-300'}
+                  `}
+                >
+                  <span className={`w-11 h-11 rounded-xl ${card.iconBg} flex items-center justify-center shrink-0`}>
+                    <Icon size={18} className="text-white" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className={`font-bold text-sm leading-none mb-1 ${isActive ? card.activeText : 'text-zinc-800'}`}>
+                      {card.label}
+                      {hasTrack && (
+                        <span className={`ml-2 text-[10px] font-bold uppercase tracking-wider ${isActive ? card.activeSubText : 'text-zinc-400'}`}>GPS</span>
+                      )}
+                    </p>
+                    <p className={`text-sm font-mono font-bold ${isActive ? card.activeText : 'text-zinc-900'}`}>
+                      {card.distanceM ? formatDistance(card.distanceM) : '—'}
+                      {card.subLabel && (
+                        <span className={`ml-1.5 text-xs font-normal ${isActive ? card.activeSubText : 'text-zinc-400'}`}>
+                          · {card.subLabel}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
+    </>
+  );
+
+  if (noOuterWrapper) return innerContent;
+
+  return (
+    <section className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
+      {innerContent}
     </section>
   );
 }
