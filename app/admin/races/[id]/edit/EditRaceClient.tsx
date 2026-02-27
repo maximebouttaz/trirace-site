@@ -232,6 +232,7 @@ export default function EditRaceClient({ race }: Props) {
         scrapedFields={scrapedFields}
         onSubmit={handleSubmit}
         isLoading={saving}
+        raceId={race.id}
       />
     </div>
   )

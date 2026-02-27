@@ -114,6 +114,7 @@ interface AdminRaceFormProps {
   scrapedFields: Set<string>
   onSubmit: (data: AdminRaceFormData) => Promise<void>
   isLoading: boolean
+  raceId?: number
 }
 
 const CATEGORIES = [
@@ -150,6 +151,7 @@ export default function AdminRaceForm({
   scrapedFields,
   onSubmit,
   isLoading,
+  raceId,
 }: AdminRaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null)
   const [form, setForm] = useState<AdminRaceFormData>({
@@ -163,6 +165,9 @@ export default function AdminRaceForm({
   const [generatingDesc, setGeneratingDesc] = useState(false)
   const [weatherLoading, setWeatherLoading] = useState(false)
   const [weatherError, setWeatherError] = useState<string | null>(null)
+  const [waterTempLoading,   setWaterTempLoading]   = useState(false)
+  const [waterTempError,     setWaterTempError]     = useState<string | null>(null)
+  const [waterTempTriggered, setWaterTempTriggered] = useState(false)
 
   useEffect(() => {
     if (form.latitude && form.longitude) return
@@ -299,6 +304,26 @@ export default function AdminRaceForm({
       setWeatherError('Impossible de contacter l\'API météo.')
     } finally {
       setWeatherLoading(false)
+    }
+  }
+
+  async function fetchWaterTemp() {
+    if (!raceId) return
+    setWaterTempLoading(true)
+    setWaterTempError(null)
+    setWaterTempTriggered(false)
+    try {
+      const res = await fetch(`/api/admin/water-temp/${raceId}`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setWaterTempError(data.error ?? 'Erreur lors du déclenchement.')
+        return
+      }
+      setWaterTempTriggered(true)
+    } catch {
+      setWaterTempError("Impossible de contacter l'API.")
+    } finally {
+      setWaterTempLoading(false)
     }
   }
 
@@ -640,7 +665,7 @@ export default function AdminRaceForm({
             {weatherError}
           </p>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <FieldLabel label="Temp. max (°C)" field="avg_temp_high_celsius" />
             <input type="number" step="0.1" className={inputClass} value={form.avg_temp_high_celsius} onChange={(e) => set('avg_temp_high_celsius', e.target.value)} placeholder="28" />
@@ -648,12 +673,47 @@ export default function AdminRaceForm({
             <input type="number" step="0.1" className={inputClass} value={form.avg_temp_low_celsius} onChange={(e) => set('avg_temp_low_celsius', e.target.value)} placeholder="18" />
           </div>
           <div>
-            <FieldLabel label="Temperature eau (C)" field="avg_water_temp_celsius" />
-            <input type="number" step="0.1" className={inputClass} value={form.avg_water_temp_celsius} onChange={(e) => set('avg_water_temp_celsius', e.target.value)} placeholder="18" />
-          </div>
-          <div>
             <FieldLabel label="Vent moyen (km/h)" field="avg_wind_kmh" />
             <input type="number" step="0.1" className={inputClass} value={form.avg_wind_kmh} onChange={(e) => set('avg_wind_kmh', e.target.value)} placeholder="15" />
+          </div>
+        </div>
+
+        {/* Sous-bloc température eau */}
+        <div className="border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-zinc-700">Température de l&apos;eau</p>
+            {raceId && (
+              <button
+                type="button"
+                onClick={fetchWaterTemp}
+                disabled={waterTempLoading}
+                title="Déclenche un calcul via Copernicus Marine (~2-3 min)"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 disabled:opacity-40 transition-colors"
+              >
+                {waterTempLoading
+                  ? <Loader2 size={12} className="animate-spin" />
+                  : <Sparkles size={12} />
+                }
+                {waterTempLoading ? 'Déclenchement…' : 'Récupérer temp. eau'}
+              </button>
+            )}
+          </div>
+          {waterTempError && (
+            <p className="flex items-center gap-1.5 text-xs text-red-500 mb-2">
+              <AlertCircle size={12} />
+              {waterTempError}
+            </p>
+          )}
+          {waterTempTriggered && (
+            <p className="text-xs text-violet-600 mb-2">
+              ✓ Calcul déclenché — actualise la page dans 2-3 min pour voir le résultat.
+            </p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <FieldLabel label="Temp. eau (°C)" field="avg_water_temp_celsius" />
+              <input type="number" step="0.1" className={inputClass} value={form.avg_water_temp_celsius} onChange={(e) => set('avg_water_temp_celsius', e.target.value)} placeholder="18" />
+            </div>
           </div>
         </div>
       </section>
