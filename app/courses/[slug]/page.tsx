@@ -510,19 +510,6 @@ export default async function RaceDetailPage({
                     <ArrowRight size={14} className="text-zinc-300" aria-hidden="true" />
                   </a>
                 )}
-                {r.finishers_url && (
-                  <a
-                    href={r.finishers_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-2 px-4 py-3 bg-white rounded-xl text-sm font-bold text-zinc-500 hover:text-zinc-900 transition-colors duration-200"
-                  >
-                    <span className="flex items-center gap-2">
-                      <ExternalLink size={14} aria-hidden="true" /> Voir sur Finishers
-                    </span>
-                    <ArrowRight size={14} className="text-zinc-300" aria-hidden="true" />
-                  </a>
-                )}
               </div>
             )}
 
