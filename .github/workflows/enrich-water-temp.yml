@@ -30,7 +30,7 @@ jobs:
           CMEMS_USERNAME:            ${{ secrets.CMEMS_USERNAME }}
           CMEMS_PASSWORD:            ${{ secrets.CMEMS_PASSWORD }}
           SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           if [ -n "${{ github.event.inputs.race_id }}" ]; then
             echo "Mode ciblé : race_id=${{ github.event.inputs.race_id }}"
