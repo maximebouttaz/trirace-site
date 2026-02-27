@@ -43,6 +43,7 @@ export default function RaceDetailBody({ race: r }: RaceDetailBodyProps) {
           runDistance={r.run_distance}
           totalElevation={r.total_elevation}
           priceEuros={r.price_euros}
+          tagline={r.tagline}
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
         />
@@ -65,6 +66,7 @@ export default function RaceDetailBody({ race: r }: RaceDetailBodyProps) {
               isWetsuitAllowed: r.is_wetsuit_allowed,
               cutoffMinutes: r.swim_cutoff_minutes,
               timeLimitHours: r.time_limit_hours,
+              distanceM: selectedFormat?.swim ?? r.swim_distance,
             },
             bike: {
               type: r.bike_type,
@@ -77,6 +79,7 @@ export default function RaceDetailBody({ race: r }: RaceDetailBodyProps) {
               cutoffMinutes: r.run_cutoff_minutes,
               timeLimitHours: r.time_limit_hours,
               laps: r.run_laps,
+              distanceM: selectedFormat?.run ?? r.run_distance,
             },
           }}
         />

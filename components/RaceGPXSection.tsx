@@ -28,9 +28,9 @@ interface SegmentedElevation {
 }
 
 export interface DisciplineData {
-  swim?: { type?: string | null; isWetsuitAllowed?: boolean | null; cutoffMinutes?: number | null; timeLimitHours?: number | null };
+  swim?: { type?: string | null; isWetsuitAllowed?: boolean | null; cutoffMinutes?: number | null; timeLimitHours?: number | null; distanceM?: number | null };
   bike?: { type?: string | null; cutoffMinutes?: number | null; timeLimitHours?: number | null; elevationM?: number | null; distanceM?: number | null };
-  run?: { cutoffMinutes?: number | null; timeLimitHours?: number | null; laps?: number | null };
+  run?: { cutoffMinutes?: number | null; timeLimitHours?: number | null; laps?: number | null; distanceM?: number | null };
 }
 
 interface RaceGPXSectionProps {
@@ -43,11 +43,6 @@ function isLegacyFormat(obj: Record<string, unknown>): boolean {
   return obj.type === 'LineString' || obj.type === 'Feature' || obj.type === 'FeatureCollection';
 }
 
-function formatCutoff(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}h${m > 0 ? String(m).padStart(2, '0') : ''}`;
-}
 
 function formatDistance(meters: number): string {
   return meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
@@ -75,6 +70,64 @@ export default function RaceGPXSection({ trackGeoJSON, elevationProfile, discipl
   const activeConfig = SEGMENT_CONFIG.find((s) => s.key === activeSegment)!;
   const hasAnyGPS = Object.keys(normalizedTrack).length > 0;
 
+  // Helper : sous-label par discipline
+  function swimSubLabel(): string | null {
+    if (!disciplines.swim) return null;
+    if (disciplines.swim.type) return disciplines.swim.type.charAt(0).toUpperCase() + disciplines.swim.type.slice(1);
+    return null;
+  }
+  function bikeSubLabel(): string | null {
+    const parts: string[] = [];
+    if (disciplines.bike?.type) parts.push(disciplines.bike.type.charAt(0).toUpperCase() + disciplines.bike.type.slice(1));
+    if (disciplines.bike?.elevationM && disciplines.bike.elevationM > 0) parts.push(`${disciplines.bike.elevationM}m D+`);
+    return parts.length > 0 ? parts.join(' · ') : null;
+  }
+  function runSubLabel(): string | null {
+    if (disciplines.run?.laps && disciplines.run.laps > 0) {
+      return `${disciplines.run.laps} ${disciplines.run.laps > 1 ? 'boucles' : 'boucle'}`;
+    }
+    return null;
+  }
+
+  const disciplineCards = [
+    {
+      key: 'swim' as Segment,
+      label: 'Natation',
+      icon: Waves,
+      distanceM: disciplines.swim?.distanceM ?? null,
+      subLabel: swimSubLabel(),
+      iconBg: 'bg-blue-500',
+      activeBg: 'bg-blue-50',
+      activeBorder: 'border-blue-300',
+      activeText: 'text-blue-700',
+      activeSubText: 'text-blue-500',
+    },
+    {
+      key: 'bike' as Segment,
+      label: 'Vélo',
+      icon: Bike,
+      distanceM: disciplines.bike?.distanceM ?? null,
+      subLabel: bikeSubLabel(),
+      iconBg: 'bg-orange-500',
+      activeBg: 'bg-orange-50',
+      activeBorder: 'border-orange-300',
+      activeText: 'text-orange-700',
+      activeSubText: 'text-orange-500',
+    },
+    {
+      key: 'run' as Segment,
+      label: 'Course à pied',
+      icon: Activity,
+      distanceM: disciplines.run?.distanceM ?? null,
+      subLabel: runSubLabel(),
+      iconBg: 'bg-emerald-500',
+      activeBg: 'bg-emerald-50',
+      activeBorder: 'border-emerald-300',
+      activeText: 'text-emerald-700',
+      activeSubText: 'text-emerald-500',
+    },
+  ];
+
   return (
     <section className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
       {hasAnyGPS && (
@@ -83,153 +136,93 @@ export default function RaceGPXSection({ trackGeoJSON, elevationProfile, discipl
         </h3>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4">
-        {SEGMENT_CONFIG.map((seg) => {
-          const isActive = seg.key === activeSegment;
-          const Icon = seg.icon;
-          return (
-            <button
-              key={seg.key}
-              onClick={() => setActiveSegment(seg.key)}
-              className={`
-                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium
-                border-2 transition-all
-                ${isActive ? seg.activeClass : 'border-transparent text-zinc-400 hover:text-zinc-600 hover:bg-gray-100'}
-              `}
-            >
-              <Icon size={14} aria-hidden="true" />
-              {seg.label}
-            </button>
-          );
-        })}
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Colonne gauche — carte + dénivelé */}
+        <div className="flex flex-col gap-3">
+          {activeTrack ? (
+            <div className="h-56 w-full rounded-2xl overflow-hidden">
+              <RaceTrackMap
+                key={activeSegment}
+                trackGeoJSON={activeTrack as unknown as GeoJSON.LineString}
+                lineColor={activeConfig.lineColor}
+              />
+            </div>
+          ) : (
+            <div className="h-56 w-full rounded-2xl bg-gray-200 flex items-center justify-center">
+              <span className="text-sm text-zinc-400">Pas de tracé GPS</span>
+            </div>
+          )}
 
-      {/* Map (GPS only) */}
-      {activeTrack && (
-        <div className="h-64 w-full rounded-2xl overflow-hidden mb-4">
-          <RaceTrackMap
-            key={activeSegment}
-            trackGeoJSON={activeTrack as unknown as GeoJSON.LineString}
-            lineColor={activeConfig.lineColor}
-          />
+          {activeElevation && activeElevation.length > 0 && (
+            <ElevationProfile data={activeElevation} accentColor={activeConfig.lineColor} />
+          )}
+
+          {/* Bike SVG fallback */}
+          {activeSegment === 'bike' && !activeTrack && disciplines.bike?.elevationM && disciplines.bike.elevationM > 0 && (
+            <div>
+              <p className="text-xs text-zinc-400 font-bold mb-2">Profil Vélo ({disciplines.bike.elevationM}m D+)</p>
+              <div className="h-32 w-full relative">
+                <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
+                  <path d="M0 25 L 10 25 L 30 5 L 50 15 L 70 2 L 90 25 L 100 25" fill="none" stroke="#a1a1aa" strokeWidth="2" />
+                  <path d="M0 25 L 10 25 L 30 5 L 50 15 L 70 2 L 90 25 L 100 25 V 30 H 0 Z" fill="url(#zinc-grad)" className="opacity-20" />
+                  <defs>
+                    <linearGradient id="zinc-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#a1a1aa" stopOpacity="0.5" />
+                      <stop offset="100%" stopColor="#a1a1aa" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                {disciplines.bike.distanceM && (
+                  <div className="flex justify-between text-xs text-zinc-500 font-mono mt-1">
+                    <span>0km</span>
+                    <span>{formatDistance(disciplines.bike.distanceM)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Elevation profile (GPS only) */}
-      {activeElevation && activeElevation.length > 0 && (
-        <div className="mb-4">
-          <ElevationProfile data={activeElevation} accentColor={activeConfig.lineColor} />
+        {/* Colonne droite — cartes disciplines cliquables */}
+        <div className="flex flex-col gap-3">
+          {disciplineCards.map((card) => {
+            const Icon = card.icon;
+            const isActive = activeSegment === card.key;
+            const hasTrack = !!normalizedTrack[card.key];
+            return (
+              <button
+                key={card.key}
+                onClick={() => setActiveSegment(card.key)}
+                className={`
+                  flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all
+                  ${isActive
+                    ? `${card.activeBg} ${card.activeBorder}`
+                    : 'bg-white border-gray-200 hover:border-gray-300'}
+                `}
+              >
+                <span className={`w-11 h-11 rounded-xl ${card.iconBg} flex items-center justify-center shrink-0`}>
+                  <Icon size={18} className="text-white" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <p className={`font-bold text-sm leading-none mb-1 ${isActive ? card.activeText : 'text-zinc-800'}`}>
+                    {card.label}
+                    {hasTrack && (
+                      <span className={`ml-2 text-[10px] font-bold uppercase tracking-wider ${isActive ? card.activeSubText : 'text-zinc-400'}`}>GPS</span>
+                    )}
+                  </p>
+                  <p className={`text-sm font-mono font-bold ${isActive ? card.activeText : 'text-zinc-900'}`}>
+                    {card.distanceM ? formatDistance(card.distanceM) : '—'}
+                    {card.subLabel && (
+                      <span className={`ml-1.5 text-xs font-normal ${isActive ? card.activeSubText : 'text-zinc-400'}`}>
+                        · {card.subLabel}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
-      )}
-
-      {/* Bike SVG fallback when no GPS but elevation data exists */}
-      {activeSegment === 'bike' && !activeTrack && disciplines.bike?.elevationM && disciplines.bike.elevationM > 0 && (
-        <div className="mb-4">
-          <p className="text-xs text-zinc-400 font-bold mb-2">Profil Velo ({disciplines.bike.elevationM}m D+)</p>
-          <div className="h-40 w-full relative">
-            <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
-              <path d="M0 25 L 10 25 L 30 5 L 50 15 L 70 2 L 90 25 L 100 25" fill="none" stroke="#a1a1aa" strokeWidth="2" />
-              <path d="M0 25 L 10 25 L 30 5 L 50 15 L 70 2 L 90 25 L 100 25 V 30 H 0 Z" fill="url(#zinc-grad)" className="opacity-20" />
-              <defs>
-                <linearGradient id="zinc-grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a1a1aa" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#a1a1aa" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-            </svg>
-            {disciplines.bike.distanceM && (
-              <div className="flex justify-between text-xs text-zinc-500 font-mono mt-2">
-                <span>0km</span>
-                <span>{formatDistance(disciplines.bike.distanceM)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Discipline details */}
-      <div className="border-t border-gray-200 pt-4 space-y-2">
-        {activeSegment === 'swim' && (
-          <>
-            {disciplines.swim?.type && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Type</span>
-                <span className="text-sm font-bold text-zinc-900 capitalize">{disciplines.swim.type}</span>
-              </div>
-            )}
-            {disciplines.swim?.isWetsuitAllowed != null && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Combinaison</span>
-                <span className="text-sm font-bold text-zinc-900">{disciplines.swim.isWetsuitAllowed ? 'Autorisée' : 'Non autorisée'}</span>
-              </div>
-            )}
-            {disciplines.swim?.cutoffMinutes ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Barrière</span>
-                <span className="text-sm font-mono font-bold text-zinc-900">{formatCutoff(disciplines.swim.cutoffMinutes)}</span>
-              </div>
-            ) : disciplines.swim?.timeLimitHours ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Barrière totale</span>
-                <span className="text-sm font-mono font-bold text-zinc-900">{disciplines.swim.timeLimitHours}h</span>
-              </div>
-            ) : null}
-            {!disciplines.swim?.type && disciplines.swim?.isWetsuitAllowed == null && !disciplines.swim?.cutoffMinutes && !disciplines.swim?.timeLimitHours && (
-              <p className="text-sm text-zinc-400 italic">Non renseigné</p>
-            )}
-          </>
-        )}
-
-        {activeSegment === 'bike' && (
-          <>
-            {disciplines.bike?.type && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Type</span>
-                <span className="text-sm font-bold text-zinc-900 capitalize">{disciplines.bike.type}</span>
-              </div>
-            )}
-            {disciplines.bike?.cutoffMinutes ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Barrière</span>
-                <span className="text-sm font-mono font-bold text-zinc-900">{formatCutoff(disciplines.bike.cutoffMinutes)}</span>
-              </div>
-            ) : disciplines.bike?.timeLimitHours ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Barrière totale</span>
-                <span className="text-sm font-mono font-bold text-zinc-900">{disciplines.bike.timeLimitHours}h</span>
-              </div>
-            ) : null}
-            {!disciplines.bike?.type && !disciplines.bike?.cutoffMinutes && !disciplines.bike?.timeLimitHours && (
-              <p className="text-sm text-zinc-400 italic">Non renseigné</p>
-            )}
-          </>
-        )}
-
-        {activeSegment === 'run' && (
-          <>
-            {disciplines.run?.laps && disciplines.run.laps > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Boucles</span>
-                <span className="text-sm font-bold text-zinc-900">{disciplines.run.laps} {disciplines.run.laps > 1 ? 'boucles' : 'boucle'}</span>
-              </div>
-            )}
-            {disciplines.run?.cutoffMinutes ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Barrière</span>
-                <span className="text-sm font-mono font-bold text-zinc-900">{formatCutoff(disciplines.run.cutoffMinutes)}</span>
-              </div>
-            ) : disciplines.run?.timeLimitHours ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Barrière totale</span>
-                <span className="text-sm font-mono font-bold text-zinc-900">{disciplines.run.timeLimitHours}h</span>
-              </div>
-            ) : null}
-            {!disciplines.run?.laps && !disciplines.run?.cutoffMinutes && !disciplines.run?.timeLimitHours && (
-              <p className="text-sm text-zinc-400 italic">Non renseigné</p>
-            )}
-          </>
-        )}
       </div>
     </section>
   );
