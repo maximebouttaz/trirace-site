@@ -50,7 +50,7 @@ export default function FormatSelector({
   const pillRef = useRef<HTMLDivElement>(null);
   const prevIndexRef = useRef(selectedIndex);
   const isFirstRender = useRef(true);
-  const settleTimer = useRef<ReturnType<typeof setTimeout>>();
+  const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const getButtonRect = useCallback((index: number) => {
     const btn = buttonRefs.current[index];
