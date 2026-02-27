@@ -26,7 +26,8 @@ export interface Race {
   tagline: string | null;
   image_gradient: string | null;
   image_url: string | null;
-  avg_temp_celsius: number | null;
+  avg_temp_high_celsius: number | null;
+  avg_temp_low_celsius: number | null;
   avg_water_temp_celsius: number | null;
   avg_wind_kmh: number | null;
   record_men: string | null;
