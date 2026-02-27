@@ -164,10 +164,8 @@ export default function AdminRaceForm({
   const [isGeocoding, setIsGeocoding] = useState(false)
   const [geocodeResult, setGeocodeResult] = useState<string | null>(null)
   const [generatingDesc, setGeneratingDesc] = useState(false)
-  const [weatherLoading, setWeatherLoading] = useState(false)
-  const [weatherError, setWeatherError] = useState<string | null>(null)
-  const [waterTempLoading, setWaterTempLoading] = useState(false)
-  const [waterTempError,   setWaterTempError]   = useState<string | null>(null)
+  const [meteoLoading, setMeteoLoading] = useState(false)
+  const [meteoError,   setMeteoError]   = useState<string | null>(null)
 
   useEffect(() => {
     if (form.latitude && form.longitude) return
@@ -300,53 +298,46 @@ export default function AdminRaceForm({
     }
   }
 
-  async function fetchWeather() {
+  async function fetchMeteo() {
     if (!form.latitude || !form.longitude || !form.date) {
-      setWeatherError('Renseignez la date et les coordonnées GPS d\'abord.')
+      setMeteoError('Renseignez la date et les coordonnées GPS d\'abord.')
       return
     }
-    setWeatherLoading(true)
-    setWeatherError(null)
+    setMeteoLoading(true)
+    setMeteoError(null)
     try {
-      const res = await fetch(
-        `/api/admin/weather?lat=${form.latitude}&lng=${form.longitude}&date=${form.date}`
-      )
-      const data = await res.json()
-      if (!res.ok) {
-        setWeatherError(data.error ?? 'Erreur lors de la récupération de la météo.')
-        return
-      }
-      if (data.avg_temp_high_celsius != null) set('avg_temp_high_celsius', String(data.avg_temp_high_celsius))
-      if (data.avg_temp_low_celsius  != null) set('avg_temp_low_celsius',  String(data.avg_temp_low_celsius))
-      if (data.avg_wind_kmh          != null) set('avg_wind_kmh',          String(data.avg_wind_kmh))
-    } catch {
-      setWeatherError('Impossible de contacter l\'API météo.')
-    } finally {
-      setWeatherLoading(false)
-    }
-  }
+      const base = `lat=${form.latitude}&lng=${form.longitude}&date=${form.date}`
+      const fetches: Promise<Response>[] = [
+        fetch(`/api/admin/weather?${base}`),
+        ...(raceId ? [fetch(`/api/admin/water-temp/${raceId}?${base}`)] : []),
+      ]
+      const [weatherRes, waterRes] = await Promise.all(fetches)
 
-  async function fetchWaterTemp() {
-    if (!raceId || !form.latitude || !form.longitude || !form.date) return
-    setWaterTempLoading(true)
-    setWaterTempError(null)
-    try {
-      const params = new URLSearchParams({
-        lat:  form.latitude,
-        lng:  form.longitude,
-        date: form.date,
-      })
-      const res = await fetch(`/api/admin/water-temp/${raceId}?${params}`)
-      const data = await res.json()
-      if (!res.ok) {
-        setWaterTempError(data.error ?? 'Aucune donnée disponible.')
-        return
+      const errors: string[] = []
+
+      const weatherData = await weatherRes.json()
+      if (weatherRes.ok) {
+        if (weatherData.avg_temp_high_celsius != null) set('avg_temp_high_celsius', String(weatherData.avg_temp_high_celsius))
+        if (weatherData.avg_temp_low_celsius  != null) set('avg_temp_low_celsius',  String(weatherData.avg_temp_low_celsius))
+        if (weatherData.avg_wind_kmh          != null) set('avg_wind_kmh',          String(weatherData.avg_wind_kmh))
+      } else {
+        errors.push(weatherData.error ?? 'Erreur météo.')
       }
-      set('avg_water_temp_celsius', String(data.avg_water_temp_celsius))
+
+      if (waterRes) {
+        const waterData = await waterRes.json()
+        if (waterRes.ok) {
+          if (waterData.avg_water_temp_celsius != null) set('avg_water_temp_celsius', String(waterData.avg_water_temp_celsius))
+        } else {
+          errors.push(waterData.error ?? 'Erreur temp. eau.')
+        }
+      }
+
+      if (errors.length > 0) setMeteoError(errors.join(' '))
     } catch {
-      setWaterTempError("Impossible de contacter l'API.")
+      setMeteoError('Impossible de contacter l\'API.')
     } finally {
-      setWaterTempLoading(false)
+      setMeteoLoading(false)
     }
   }
 
@@ -675,22 +666,22 @@ export default function AdminRaceForm({
           <h3 className="text-base font-semibold text-zinc-900">Météo typique</h3>
           <button
             type="button"
-            onClick={fetchWeather}
-            disabled={weatherLoading || !form.latitude || !form.longitude || !form.date}
-            title="Renseignez la date et les coordonnées GPS d'abord"
+            onClick={fetchMeteo}
+            disabled={meteoLoading || !form.latitude || !form.longitude || !form.date}
+            title="Moyenne historique 3 ans via Open-Meteo (air + mer)"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 disabled:opacity-40 transition-colors"
           >
-            {weatherLoading
+            {meteoLoading
               ? <Loader2 size={12} className="animate-spin" />
               : <Sparkles size={12} />
             }
-            {weatherLoading ? 'Chargement…' : 'Récupérer la météo'}
+            {meteoLoading ? 'Chargement…' : 'Récupérer la météo'}
           </button>
         </div>
-        {weatherError && (
+        {meteoError && (
           <p className="flex items-center gap-1.5 text-xs text-red-500">
             <AlertCircle size={12} />
-            {weatherError}
+            {meteoError}
           </p>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -703,40 +694,8 @@ export default function AdminRaceForm({
           <div>
             <FieldLabel label="Vent moyen (km/h)" field="avg_wind_kmh" />
             <input type="number" step="0.1" className={inputClass} value={form.avg_wind_kmh} onChange={(e) => set('avg_wind_kmh', e.target.value)} placeholder="15" />
-          </div>
-        </div>
-
-        {/* Sous-bloc température eau */}
-        <div className="border-t border-gray-200 pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-zinc-700">Température de l&apos;eau</p>
-            {raceId && (
-              <button
-                type="button"
-                onClick={fetchWaterTemp}
-                disabled={waterTempLoading || !form.latitude || !form.longitude || !form.date}
-                title="Calcule via Open-Meteo Marine (moyenne 3 ans)"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 disabled:opacity-40 transition-colors"
-              >
-                {waterTempLoading
-                  ? <Loader2 size={12} className="animate-spin" />
-                  : <Sparkles size={12} />
-                }
-                {waterTempLoading ? 'Calcul…' : 'Récupérer temp. eau'}
-              </button>
-            )}
-          </div>
-          {waterTempError && (
-            <p className="flex items-center gap-1.5 text-xs text-red-500 mb-2">
-              <AlertCircle size={12} />
-              {waterTempError}
-            </p>
-          )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <FieldLabel label="Temp. eau (°C)" field="avg_water_temp_celsius" />
-              <input type="number" step="0.1" className={inputClass} value={form.avg_water_temp_celsius} onChange={(e) => set('avg_water_temp_celsius', e.target.value)} placeholder="18" />
-            </div>
+            <FieldLabel label="Temp. eau (°C)" field="avg_water_temp_celsius" />
+            <input type="number" step="0.1" className={inputClass} value={form.avg_water_temp_celsius} onChange={(e) => set('avg_water_temp_celsius', e.target.value)} placeholder="18" />
           </div>
         </div>
       </section>
