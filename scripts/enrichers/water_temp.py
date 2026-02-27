@@ -161,11 +161,7 @@ def main():
     # Nécessaire en environnement non-interactif (CI/GitHub Actions)
     print("[WATER_TEMP] Login Copernicus Marine…")
     try:
-        copernicusmarine.login(
-            username=svc_user,
-            password=svc_pass,
-            overwrite_configuration_file=True,
-        )
+        copernicusmarine.login(username=svc_user, password=svc_pass)
         print("[WATER_TEMP] Login OK")
     except Exception as e:
         print(f"[WATER_TEMP] ✗ Login CMEMS échoué : {e}", file=sys.stderr)
