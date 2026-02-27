@@ -18,36 +18,40 @@ import RelatedRaces from '@/components/RelatedRaces';
 import RaceDetailBody from '@/components/RaceDetailBody';
 import TerrainIcons from '@/components/TerrainIcons';
 
-const COUNTRY_FLAGS: Record<string, string> = {
-  'France': '\u{1F1EB}\u{1F1F7}',
-  'Spain': '\u{1F1EA}\u{1F1F8}', 'Espagne': '\u{1F1EA}\u{1F1F8}',
-  'Italy': '\u{1F1EE}\u{1F1F9}', 'Italie': '\u{1F1EE}\u{1F1F9}',
-  'Germany': '\u{1F1E9}\u{1F1EA}', 'Allemagne': '\u{1F1E9}\u{1F1EA}',
-  'Switzerland': '\u{1F1E8}\u{1F1ED}', 'Suisse': '\u{1F1E8}\u{1F1ED}',
-  'Belgium': '\u{1F1E7}\u{1F1EA}', 'Belgique': '\u{1F1E7}\u{1F1EA}',
-  'United Kingdom': '\u{1F1EC}\u{1F1E7}', 'Royaume-Uni': '\u{1F1EC}\u{1F1E7}',
-  'Portugal': '\u{1F1F5}\u{1F1F9}',
-  'Austria': '\u{1F1E6}\u{1F1F9}', 'Autriche': '\u{1F1E6}\u{1F1F9}',
-  'Netherlands': '\u{1F1F3}\u{1F1F1}', 'Pays-Bas': '\u{1F1F3}\u{1F1F1}',
-  'Denmark': '\u{1F1E9}\u{1F1F0}', 'Danemark': '\u{1F1E9}\u{1F1F0}',
-  'Sweden': '\u{1F1F8}\u{1F1EA}', 'Suède': '\u{1F1F8}\u{1F1EA}',
-  'Norway': '\u{1F1F3}\u{1F1F4}', 'Norvège': '\u{1F1F3}\u{1F1F4}',
-  'Finland': '\u{1F1EB}\u{1F1EE}', 'Finlande': '\u{1F1EB}\u{1F1EE}',
-  'Greece': '\u{1F1EC}\u{1F1F7}', 'Grèce': '\u{1F1EC}\u{1F1F7}',
-  'Croatia': '\u{1F1ED}\u{1F1F7}', 'Croatie': '\u{1F1ED}\u{1F1F7}',
-  'Slovenia': '\u{1F1F8}\u{1F1EE}', 'Slovénie': '\u{1F1F8}\u{1F1EE}',
-  'Poland': '\u{1F1F5}\u{1F1F1}', 'Pologne': '\u{1F1F5}\u{1F1F1}',
-  'Czech Republic': '\u{1F1E8}\u{1F1FF}', 'Tchéquie': '\u{1F1E8}\u{1F1FF}',
-  'Hungary': '\u{1F1ED}\u{1F1FA}', 'Hongrie': '\u{1F1ED}\u{1F1FA}',
-  'Ireland': '\u{1F1EE}\u{1F1EA}', 'Irlande': '\u{1F1EE}\u{1F1EA}',
-  'Luxembourg': '\u{1F1F1}\u{1F1FA}',
-  'Monaco': '\u{1F1F2}\u{1F1E8}',
-  'USA': '\u{1F1FA}\u{1F1F8}', 'États-Unis': '\u{1F1FA}\u{1F1F8}',
+/* ——— Country → flag SVG file code (ISO 3166-1 alpha-2) ——— */
+const COUNTRY_CODES: Record<string, string> = {
+  'France': 'fr',
+  'Spain': 'es', 'Espagne': 'es',
+  'Italy': 'it', 'Italie': 'it',
+  'Germany': 'de', 'Allemagne': 'de',
+  'Switzerland': 'ch', 'Suisse': 'ch',
+  'Belgium': 'be', 'Belgique': 'be',
+  'United Kingdom': 'gb', 'Royaume-Uni': 'gb',
+  'Portugal': 'pt',
+  'Austria': 'at', 'Autriche': 'at',
+  'Netherlands': 'nl', 'Pays-Bas': 'nl',
+  'Denmark': 'dk', 'Danemark': 'dk',
+  'Sweden': 'se', 'Suède': 'se',
+  'Norway': 'no', 'Norvège': 'no',
+  'Finland': 'fi', 'Finlande': 'fi',
+  'Greece': 'gr', 'Grèce': 'gr',
+  'Croatia': 'hr', 'Croatie': 'hr',
+  'Slovenia': 'si', 'Slovénie': 'si',
+  'Poland': 'pl', 'Pologne': 'pl',
+  'Czech Republic': 'cz', 'Tchéquie': 'cz',
+  'Hungary': 'hu', 'Hongrie': 'hu',
+  'Ireland': 'ie', 'Irlande': 'ie',
+  'Luxembourg': 'lu',
+  'Monaco': 'mc',
+  'USA': 'us', 'États-Unis': 'us',
+  'New Zealand': 'nz', 'Nouvelle-Zélande': 'nz',
+  'South Africa': 'za', 'Afrique du Sud': 'za',
 };
 
-function countryFlag(country: string | null): string {
-  if (!country) return '\u{1F3C1}';
-  return COUNTRY_FLAGS[country] ?? '\u{1F3C1}';
+function countryFlagSrc(country: string | null): string | null {
+  if (!country) return null;
+  const code = COUNTRY_CODES[country];
+  return code ? `/Icon/Flags/${code}.svg` : null;
 }
 
 const fetchRace = cache(async (slug: string) => {
@@ -265,15 +269,12 @@ export default async function RaceDetailPage({
               {r.name}
             </h1>
 
-            {/* Tagline */}
-            {r.tagline && (
-              <p className="text-white/60 text-lg italic max-w-2xl mt-3">{r.tagline}</p>
-            )}
-
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-5 text-white/60 text-sm">
               <span className="flex items-center gap-1.5">
-                <span aria-hidden="true">{countryFlag(r.country)}</span>
+                {countryFlagSrc(r.country) && (
+                  <Image src={countryFlagSrc(r.country)!} alt={r.country ?? ''} width={20} height={15} className="w-5 h-auto rounded-sm" />
+                )}
                 {r.location}
               </span>
             </div>

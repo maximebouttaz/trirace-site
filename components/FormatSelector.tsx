@@ -206,23 +206,17 @@ export default function FormatSelector({
 
       {/* Stats secondaires — dénivelé + prix */}
       {((elevation != null && elevation > 0) || showPrice) && (
-        <div className="flex gap-2.5 mt-0">
+        <div className="flex gap-8 mt-1">
           {elevation != null && elevation > 0 && (
-            <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 flex-1">
-              <Mountain size={14} className="text-zinc-400 shrink-0" aria-hidden="true" />
-              <div>
-                <p className="text-base font-mono font-black text-zinc-900 leading-none">{elevation}m</p>
-                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-0.5">Dénivelé D+</p>
-              </div>
+            <div>
+              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{elevation}<span className="text-base">m</span></p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Dénivelé D+</p>
             </div>
           )}
           {showPrice && (
-            <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 flex-1">
-              <Euro size={14} className="text-zinc-400 shrink-0" aria-hidden="true" />
-              <div>
-                <p className="text-base font-mono font-black text-zinc-900 leading-none">{price}€</p>
-                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-0.5">Inscription</p>
-              </div>
+            <div>
+              <p className="text-2xl font-mono font-black text-zinc-900 leading-none">{price}<span className="text-base">€</span></p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Inscription</p>
             </div>
           )}
         </div>
