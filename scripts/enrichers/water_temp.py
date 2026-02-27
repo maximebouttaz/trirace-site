@@ -20,9 +20,17 @@ import copernicusmarine
 from supabase import create_client
 
 DATASET_ID    = "cmems_mod_glo_phy_my_0.083deg_P1D-m"
-HISTORY_YEARS = 3
-DEPTH_MAX     = 1.0   # surface uniquement
+HISTORY_YEARS = 5
 RADIUS_DEG    = 0.5   # ~55km autour du lieu
+
+# Traduit les noms d'env vars métier vers les noms attendus par la lib
+# (copernicusmarine >= 2.x utilise COPERNICUSMARINE_SERVICE_USERNAME/PASSWORD)
+_user = os.environ.get("CMEMS_USERNAME", "")
+_pass = os.environ.get("CMEMS_PASSWORD", "")
+if _user:
+    os.environ.setdefault("COPERNICUSMARINE_SERVICE_USERNAME", _user)
+if _pass:
+    os.environ.setdefault("COPERNICUSMARINE_SERVICE_PASSWORD", _pass)
 
 
 def fetch_water_temp(lat: float, lon: float, race_date: str) -> Optional[float]:
@@ -36,10 +44,8 @@ def fetch_water_temp(lat: float, lon: float, race_date: str) -> Optional[float]:
     except (ValueError, TypeError):
         return None
 
-    today  = date.today()
-    temps  = []
-    cmems_user = os.environ["CMEMS_USERNAME"]
-    cmems_pass = os.environ["CMEMS_PASSWORD"]
+    today = date.today()
+    temps = []
 
     for years_back in range(1, HISTORY_YEARS + 1):
         target_year = race_dt.year - years_back
@@ -53,6 +59,7 @@ def fetch_water_temp(lat: float, lon: float, race_date: str) -> Optional[float]:
         if start > today:
             continue
 
+        print(f"  → Tentative {target_year} ({start} → {end})")
         try:
             ds = copernicusmarine.open_dataset(
                 dataset_id        = DATASET_ID,
@@ -63,8 +70,6 @@ def fetch_water_temp(lat: float, lon: float, race_date: str) -> Optional[float]:
                 maximum_longitude = lon + RADIUS_DEG,
                 start_datetime    = start.isoformat() + "T00:00:00",
                 end_datetime      = end.isoformat()   + "T23:59:59",
-                username          = cmems_user,
-                password          = cmems_pass,
             )
 
             # Sélectionner la couche la plus superficielle et forcer le chargement
@@ -72,7 +77,11 @@ def fetch_water_temp(lat: float, lon: float, race_date: str) -> Optional[float]:
             values  = surface.values.flatten()
             valid   = values[~np.isnan(values)]
             if len(valid) > 0:
-                temps.append(float(np.mean(valid)))
+                mean_t = float(np.mean(valid))
+                temps.append(mean_t)
+                print(f"    ✓ {mean_t:.2f}°C ({len(valid)} points)")
+            else:
+                print(f"    ⚠ Aucune valeur valide")
 
             ds.close()
 
@@ -140,12 +149,25 @@ def main():
     parser.add_argument("--race-id", type=int, default=None, help="ID d'une course spécifique")
     args = parser.parse_args()
 
+    # Diagnostic credentials
+    svc_user = os.environ.get("COPERNICUSMARINE_SERVICE_USERNAME", "")
+    svc_pass = os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD", "")
+    if not svc_user or not svc_pass:
+        print("[WATER_TEMP] ✗ Credentials CMEMS manquants — vérifie CMEMS_USERNAME / CMEMS_PASSWORD", file=sys.stderr)
+        sys.exit(1)
+    print(f"[WATER_TEMP] Credentials CMEMS : utilisateur={svc_user[:4]}*** OK")
+
     supabase = create_client(
         os.environ["SUPABASE_URL"],
         os.environ["SUPABASE_SERVICE_ROLE_KEY"],
     )
 
-    enrich_water_temp(supabase, race_id=args.race_id)
+    enriched = enrich_water_temp(supabase, race_id=args.race_id)
+
+    # Fail explicitement si aucune course enrichie (mode ciblé)
+    if args.race_id is not None and enriched == 0:
+        print("[WATER_TEMP] ✗ Aucune donnée trouvée pour cette course", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
