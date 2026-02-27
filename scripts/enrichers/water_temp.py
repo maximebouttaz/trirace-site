@@ -157,6 +157,21 @@ def main():
         sys.exit(1)
     print(f"[WATER_TEMP] Credentials CMEMS : utilisateur={svc_user[:4]}*** OK")
 
+    # Login explicite — crée ~/.copernicusmarine/.copernicusmarine-credentials
+    # Nécessaire en environnement non-interactif (CI/GitHub Actions)
+    print("[WATER_TEMP] Login Copernicus Marine…")
+    try:
+        copernicusmarine.login(
+            username=svc_user,
+            password=svc_pass,
+            overwrite=True,
+            check_credentials_valid=False,
+        )
+        print("[WATER_TEMP] Login OK")
+    except Exception as e:
+        print(f"[WATER_TEMP] ✗ Login CMEMS échoué : {e}", file=sys.stderr)
+        sys.exit(1)
+
     supabase = create_client(
         os.environ["SUPABASE_URL"],
         os.environ["SUPABASE_SERVICE_ROLE_KEY"],
