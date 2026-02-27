@@ -440,20 +440,6 @@ export default function AdminRaceForm({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <FieldLabel label="GPX natation" field="swim_gpx_url" />
-            <input type="text" className={inputClass} value={form.swim_gpx_url} onChange={(e) => set('swim_gpx_url', e.target.value)} placeholder="https://...natation.gpx" />
-          </div>
-          <div>
-            <FieldLabel label="GPX velo" field="bike_gpx_url" />
-            <input type="text" className={inputClass} value={form.bike_gpx_url} onChange={(e) => set('bike_gpx_url', e.target.value)} placeholder="https://...velo.gpx" />
-          </div>
-          <div>
-            <FieldLabel label="GPX course" field="run_gpx_url" />
-            <input type="text" className={inputClass} value={form.run_gpx_url} onChange={(e) => set('run_gpx_url', e.target.value)} placeholder="https://...course.gpx" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
             <FieldLabel label="Barriere natation (min)" field="swim_cutoff_minutes" />
             <input type="number" className={inputClass} value={form.swim_cutoff_minutes} onChange={(e) => set('swim_cutoff_minutes', e.target.value)} placeholder="70" />
             <p className="text-xs text-zinc-400 mt-1">ex: 70 = 1h10</p>
@@ -645,13 +631,6 @@ export default function AdminRaceForm({
               <div className={`mt-2 h-16 rounded-xl ${form.image_gradient}`} />
             )}
           </div>
-        </div>
-        <div>
-          <FieldLabel label="URL GPX" field="gpx_url" />
-          <input type="text" className={inputClass} value={form.gpx_url}
-            onChange={(e) => set('gpx_url', e.target.value)}
-            placeholder="https://...parcours.gpx" />
-          <p className="text-xs text-zinc-400 mt-1">Lien de telechargement du fichier GPX</p>
         </div>
         <div>
           <FieldLabel label="Tags" field="tags" />
