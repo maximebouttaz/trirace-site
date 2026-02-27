@@ -161,6 +161,8 @@ export default function AdminRaceForm({
   const [geocoding, setGeocoding] = useState(false)
   const [isGeocoding, setIsGeocoding] = useState(false)
   const [generatingDesc, setGeneratingDesc] = useState(false)
+  const [weatherLoading, setWeatherLoading] = useState(false)
+  const [weatherError, setWeatherError] = useState<string | null>(null)
 
   useEffect(() => {
     if (form.latitude && form.longitude) return
@@ -271,6 +273,32 @@ export default function AdminRaceForm({
       // ignore
     } finally {
       setGeneratingDesc(false)
+    }
+  }
+
+  async function fetchWeather() {
+    if (!form.latitude || !form.longitude || !form.date) {
+      setWeatherError('Renseignez la date et les coordonnées GPS d\'abord.')
+      return
+    }
+    setWeatherLoading(true)
+    setWeatherError(null)
+    try {
+      const res = await fetch(
+        `/api/admin/weather?lat=${form.latitude}&lng=${form.longitude}&date=${form.date}`
+      )
+      const data = await res.json()
+      if (!res.ok) {
+        setWeatherError(data.error ?? 'Erreur lors de la récupération de la météo.')
+        return
+      }
+      if (data.avg_temp_high_celsius != null) set('avg_temp_high_celsius', String(data.avg_temp_high_celsius))
+      if (data.avg_temp_low_celsius  != null) set('avg_temp_low_celsius',  String(data.avg_temp_low_celsius))
+      if (data.avg_wind_kmh          != null) set('avg_wind_kmh',          String(data.avg_wind_kmh))
+    } catch {
+      setWeatherError('Impossible de contacter l\'API météo.')
+    } finally {
+      setWeatherLoading(false)
     }
   }
 
@@ -590,7 +618,27 @@ export default function AdminRaceForm({
 
       {/* Section 6: Meteo */}
       <section className="bg-gray-50 rounded-2xl border border-gray-200 p-6 space-y-4">
-        <h3 className="text-base font-semibold text-zinc-900">Meteo moyenne</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-zinc-900">Météo typique</h3>
+          <button
+            type="button"
+            onClick={fetchWeather}
+            disabled={weatherLoading}
+            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-zinc-600 hover:text-zinc-900 hover:border-gray-300 transition-colors disabled:opacity-50"
+          >
+            {weatherLoading
+              ? <Loader2 size={12} className="animate-spin" />
+              : <Sparkles size={12} />
+            }
+            {weatherLoading ? 'Chargement…' : 'Récupérer la météo'}
+          </button>
+        </div>
+        {weatherError && (
+          <p className="flex items-center gap-1.5 text-xs text-red-500">
+            <AlertCircle size={12} />
+            {weatherError}
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <FieldLabel label="Temp. max (°C)" field="avg_temp_high_celsius" />
