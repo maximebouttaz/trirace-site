@@ -283,7 +283,7 @@ export default async function RaceDetailPage({
       </div>
 
       {/* Terrain type icons */}
-      <TerrainIcons swimType={r.swim_type} bikeType={r.bike_type} runType="Plat" />
+      <TerrainIcons swimType={r.swim_type} bikeType={r.bike_type} runType={r.run_type} />
 
       <div className="max-w-7xl mx-auto px-6 md:px-10 mt-4">
 
@@ -308,7 +308,7 @@ export default async function RaceDetailPage({
             {/* Conditions le jour J */}
             {(r.avg_temp_high_celsius != null || r.avg_water_temp_celsius != null || r.avg_wind_kmh != null) && (
               <section className="border-t border-gray-200 pt-8 mt-8">
-                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Conditions le jour J</h3>
+                <h3 className="text-[11px] uppercase tracking-widest text-zinc-400 font-bold mb-4">Météo typique</h3>
                 <div className="grid grid-cols-3 gap-3">
 
                   {/* Température */}

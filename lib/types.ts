@@ -36,8 +36,9 @@ export interface Race {
   website_url: string | null;
   finishers_url: string | null;
   // — Nouveaux champs triathlete —
-  swim_type: 'lac' | 'mer' | 'rivière' | 'piscine' | 'étang' | 'open water' | null;
-  bike_type: 'route' | 'gravel' | 'mixte' | 'vtt' | null;
+  swim_type: 'lac' | 'mer' | 'ocean' | 'riviere' | 'baie' | null;
+  bike_type: 'flat' | 'hilly' | 'rolling' | null;
+  run_type: 'flat' | 'hilly' | 'rolling' | null;
   is_wetsuit_allowed: boolean | null;
   is_draft_legal: boolean | null;
   registration_deadline: string | null;

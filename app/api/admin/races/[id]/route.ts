@@ -11,7 +11,7 @@ const ALLOWED_FIELDS = new Set([
   'record_men', 'record_women', 'finishers_url', 'finishers_count',
   'organizer_name', 'label', 'track_geojson', 'elevation_profile',
   'gpx_url', 'swim_gpx_url', 'bike_gpx_url', 'run_gpx_url',
-  'swim_type', 'bike_type', 'is_wetsuit_allowed', 'is_draft_legal',
+  'swim_type', 'bike_type', 'run_type', 'is_wetsuit_allowed', 'is_draft_legal',
   'registration_status', 'registration_deadline', 'qualification_for', 'tags',
   'swim_cutoff_minutes', 'bike_cutoff_minutes', 'run_cutoff_minutes',
   'needs_review', 'status',

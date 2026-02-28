@@ -46,6 +46,7 @@ function raceToFormData(race: Race): Partial<AdminRaceFormData> {
     tags: Array.isArray(race.tags) ? race.tags.join(', ') : '',
     swim_type: race.swim_type ?? '',
     bike_type: race.bike_type ?? '',
+    run_type: (race as Race & { run_type?: string | null }).run_type ?? '',
     label: race.label ?? '',
     organizer_name: race.organizer_name ?? '',
     registration_deadline: race.registration_deadline ?? '',

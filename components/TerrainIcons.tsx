@@ -12,103 +12,58 @@ interface TerrainIconsProps {
   runType?: string | null;
 }
 
-/* ——— Mappings type → image path ——— */
-
-const SWIM_IMAGES: Record<string, string> = {
-  'Mer': '/Icon/ocean.svg',
-  'Ocean': '/Icon/ocean.svg',
-  'Océan': '/Icon/ocean.svg',
-  'Lac': '/Icon/lake.svg',
-  'Lake': '/Icon/lake.svg',
-  'Rivière': '/Icon/river.svg',
-  'River': '/Icon/river.svg',
-  'Baie': '/Icon/bay.svg',
-  'Bay': '/Icon/bay.svg',
+/* ——— Swim : lac, mer, ocean, riviere, baie ——— */
+const SWIM_MAP: Record<string, { img: string; label: string }> = {
+  lac:     { img: '/Icon/lake.svg',   label: 'Lac' },
+  lake:    { img: '/Icon/lake.svg',   label: 'Lac' },
+  mer:     { img: '/Icon/ocean.svg',  label: 'Mer' },
+  ocean:   { img: '/Icon/ocean.svg',  label: 'Océan' },
+  riviere: { img: '/Icon/river.svg',  label: 'Rivière' },
+  river:   { img: '/Icon/river.svg',  label: 'Rivière' },
+  baie:    { img: '/Icon/bay.svg',    label: 'Baie' },
+  bay:     { img: '/Icon/bay.svg',    label: 'Baie' },
 };
 
-const SWIM_LABELS: Record<string, string> = {
-  'Mer': 'Mer',
-  'Ocean': 'Océan',
-  'Océan': 'Océan',
-  'Lac': 'Lac',
-  'Lake': 'Lac',
-  'Rivière': 'Rivière',
-  'River': 'Rivière',
-  'Baie': 'Baie',
-  'Bay': 'Baie',
+/* ——— Bike & Run : flat, hilly, rolling ——— */
+const TERRAIN_MAP: Record<string, { img: string; label: string }> = {
+  flat:    { img: '/Icon/flat_0.svg',    label: 'Plat' },
+  hilly:   { img: '/Icon/hilly.svg',     label: 'Vallonné' },
+  rolling: { img: '/Icon/rolling_0.svg', label: 'Roulant' },
 };
-
-const BIKE_IMAGES: Record<string, string> = {
-  'Route': '/Icon/rolling_0.svg',
-  'Roulant': '/Icon/rolling_0.svg',
-  'Rolling': '/Icon/rolling_0.svg',
-  'Plat': '/Icon/flat_0.svg',
-  'Flat': '/Icon/flat_0.svg',
-  'Vallonné': '/Icon/hilly.svg',
-  'Vallonne': '/Icon/hilly.svg',
-  'Hilly': '/Icon/hilly.svg',
-  'Montagne': '/Icon/hilly.svg',
-  'Mountain': '/Icon/hilly.svg',
-};
-
-const BIKE_LABELS: Record<string, string> = {
-  'Route': 'Route',
-  'Roulant': 'Roulant',
-  'Rolling': 'Roulant',
-  'Montagne': 'Montagne',
-  'Mountain': 'Montagne',
-  'Vallonné': 'Vallonné',
-  'Vallonne': 'Vallonné',
-  'Hilly': 'Vallonné',
-  'Plat': 'Plat',
-  'Flat': 'Plat',
-};
-
-const RUN_IMAGES = BIKE_IMAGES;
-const RUN_LABELS = BIKE_LABELS;
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-}
 
 export default function TerrainIcons({ swimType, bikeType, runType }: TerrainIconsProps) {
-  const swimKey = swimType ? capitalize(swimType) : null;
-  const bikeKey = bikeType ? capitalize(bikeType) : null;
-  const runKey = runType ? capitalize(runType) : null;
-  const swimImg = swimKey ? SWIM_IMAGES[swimKey] : null;
-  const bikeImg = bikeKey ? BIKE_IMAGES[bikeKey] : null;
-  const runImg = runKey ? RUN_IMAGES[runKey] : null;
+  const swim  = swimType  ? SWIM_MAP[swimType.toLowerCase()]    : null;
+  const bike  = bikeType  ? TERRAIN_MAP[bikeType.toLowerCase()] : null;
+  const run   = runType   ? TERRAIN_MAP[runType.toLowerCase()]  : null;
 
-  if (!swimImg && !bikeImg && !runImg) return null;
+  if (!swim && !bike && !run) return null;
 
   return (
     <div className="flex items-center justify-center gap-8 md:gap-12 py-6">
-      {swimImg && (
+      {swim && (
         <div className="flex items-center gap-3">
-          <Image src={swimImg} alt={swimType ?? 'Swim'} width={48} height={48} className="w-12 h-12 opacity-60" />
+          <Image src={swim.img} alt={swim.label} width={48} height={48} className="w-12 h-12 opacity-60" />
           <div>
             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Swim</p>
-            <p className="text-sm font-bold text-zinc-700">{SWIM_LABELS[swimKey!] ?? swimType}</p>
+            <p className="text-sm font-bold text-zinc-700">{swim.label}</p>
           </div>
         </div>
       )}
-
-      {bikeImg && (
+      {bike && (
         <div className="flex items-center gap-3">
-          <Image src={bikeImg} alt={bikeType ?? 'Bike'} width={48} height={48} className="w-12 h-12 opacity-60" />
+          <Image src={bike.img} alt={bike.label} width={48} height={48} className="w-12 h-12 opacity-60" />
           <div>
             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Bike</p>
-            <p className="text-sm font-bold text-zinc-700">{BIKE_LABELS[bikeKey!] ?? bikeType}</p>
+            <p className="text-sm font-bold text-zinc-700">{bike.label}</p>
           </div>
         </div>
       )}
-
-      {runImg && (
+      {run && (
         <div className="flex items-center gap-3">
-          <Image src={runImg} alt={runType ?? 'Run'} width={48} height={48} className="w-12 h-12 opacity-60" />
+          <Image src={run.img} alt={run.label} width={48} height={48} className="w-12 h-12 opacity-60" />
           <div>
             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Run</p>
-            <p className="text-sm font-bold text-zinc-700">{RUN_LABELS[runKey!] ?? runType}</p>
+            <p className="text-sm font-bold text-zinc-700">{run.label}</p>
           </div>
         </div>
       )}

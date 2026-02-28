@@ -32,6 +32,7 @@ export interface AdminRaceFormData {
   tags: string
   swim_type: string
   bike_type: string
+  run_type: string
   label: string
   organizer_name: string
   registration_deadline: string
@@ -85,6 +86,7 @@ export const EMPTY_FORM_DATA: AdminRaceFormData = {
   tags: '',
   swim_type: '',
   bike_type: '',
+  run_type: '',
   label: '',
   organizer_name: '',
   registration_deadline: '',
@@ -132,18 +134,16 @@ const SWIM_TYPES = [
   { value: '', label: '-' },
   { value: 'lac', label: 'Lac' },
   { value: 'mer', label: 'Mer' },
-  { value: 'riviere', label: 'Riviere' },
-  { value: 'piscine', label: 'Piscine' },
-  { value: 'etang', label: 'Etang' },
-  { value: 'open water', label: 'Open water' },
+  { value: 'ocean', label: 'Océan' },
+  { value: 'riviere', label: 'Rivière' },
+  { value: 'baie', label: 'Baie' },
 ]
 
-const BIKE_TYPES = [
+const TERRAIN_TYPES = [
   { value: '', label: '-' },
-  { value: 'route', label: 'Route' },
-  { value: 'gravel', label: 'Gravel' },
-  { value: 'mixte', label: 'Mixte' },
-  { value: 'vtt', label: 'VTT' },
+  { value: 'flat', label: 'Plat' },
+  { value: 'rolling', label: 'Roulant' },
+  { value: 'hilly', label: 'Vallonné' },
 ]
 
 export default function AdminRaceForm({
@@ -707,13 +707,23 @@ export default function AdminRaceForm({
             </select>
           </div>
           <div>
-            <FieldLabel label="Type velo" field="bike_type" />
+            <FieldLabel label="Profil vélo" field="bike_type" />
             <select className={selectClass} value={form.bike_type} onChange={(e) => set('bike_type', e.target.value)}>
-              {BIKE_TYPES.map((t) => (
+              {TERRAIN_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
           </div>
+          <div>
+            <FieldLabel label="Profil course à pied" field="run_type" />
+            <select className={selectClass} value={form.run_type} onChange={(e) => set('run_type', e.target.value)}>
+              {TERRAIN_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <FieldLabel label="Label" field="label" />
             <input className={inputClass} value={form.label} onChange={(e) => set('label', e.target.value)} placeholder="Label FFTri, Ironman..." />
