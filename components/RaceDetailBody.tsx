@@ -5,6 +5,7 @@ import { Medal, Waves, Bike, Activity } from 'lucide-react';
 import type { Race } from '@/lib/types';
 import FormatSelector from '@/components/FormatSelector';
 import RaceGPXSection, { type Segment } from '@/components/RaceGPXSection';
+import TerrainIcons from '@/components/TerrainIcons';
 
 interface RaceDetailBodyProps {
   race: Race;
@@ -82,6 +83,8 @@ export default function RaceDetailBody({ race: r }: RaceDetailBodyProps) {
           onSelect={setSelectedIndex}
         />
       </section>
+
+      <TerrainIcons swimType={r.swim_type} bikeType={r.bike_type} runType={r.run_type} />
 
       {/* Parcours — onglets disciplines connectés au contenu GPS */}
       <section className="mb-8">

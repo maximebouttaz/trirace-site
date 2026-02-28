@@ -110,7 +110,7 @@ export function idealPourTags(race: Race): string[] {
   if (race.total_elevation == null || race.total_elevation < 500) tags.push('Parcours plat');
   if (race.total_elevation != null && race.total_elevation > 2000) tags.push('Montagneux');
   if (race.avg_temp_high_celsius != null && race.avg_temp_high_celsius >= 28) tags.push('Destination soleil');
-  if (race.swim_type === 'mer' || race.swim_type === 'open water') tags.push('Open water');
+  if (race.swim_type === 'mer' || race.swim_type === 'ocean' || race.swim_type === 'baie') tags.push('Open water');
   if (race.time_limit_hours != null && race.time_limit_hours >= 16 && ['XL', 'Ironman'].includes(race.category)) tags.push('Premier Ironman');
   if (race.time_limit_hours != null && race.time_limit_hours >= 8 && ['70.3', 'L'].includes(race.category)) tags.push('Premier Half');
   return tags.slice(0, 4);

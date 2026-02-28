@@ -16,7 +16,6 @@ import { SITE_URL, TRICOACH_URL } from '@/lib/config';
 import CTABanner from '@/components/CTABanner';
 import RelatedRaces from '@/components/RelatedRaces';
 import RaceDetailBody from '@/components/RaceDetailBody';
-import TerrainIcons from '@/components/TerrainIcons';
 
 /* ——— Country → flag SVG file code (ISO 3166-1 alpha-2) ——— */
 const COUNTRY_CODES: Record<string, string> = {
@@ -281,9 +280,6 @@ export default async function RaceDetailPage({
           </div>
         </div>
       </div>
-
-      {/* Terrain type icons */}
-      <TerrainIcons swimType={r.swim_type} bikeType={r.bike_type} runType={r.run_type} />
 
       <div className="max-w-7xl mx-auto px-6 md:px-10 mt-4">
 
