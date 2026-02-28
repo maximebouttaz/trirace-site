@@ -80,7 +80,7 @@ export async function PATCH(
 
   if (error) {
     console.error('[PATCH /api/admin/races/[id]]', error)
-    return NextResponse.json({ error: 'Erreur lors de la mise à jour.' }, { status: 500 })
+    return NextResponse.json({ error: `Erreur lors de la mise à jour : ${error.message}` }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
