@@ -70,7 +70,7 @@ export default function RaceDetailBody({ race: r }: RaceDetailBodyProps) {
   return (
     <>
       {/* Sélecteur de format + KPI distances */}
-      <section className="mb-8">
+      <section className="mb-2">
         <FormatSelector
           formats={r.formats}
           swimDistance={r.swim_distance}
