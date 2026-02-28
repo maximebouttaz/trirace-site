@@ -39,7 +39,7 @@ export default function TerrainIcons({ swimType, bikeType, runType }: TerrainIco
   if (!swim && !bike && !run) return null;
 
   return (
-    <div className="flex items-center justify-center gap-8 md:gap-12 py-6">
+    <div className="flex items-center justify-start gap-8 md:gap-12 pb-6 pt-2">
       {swim && (
         <div className="flex items-center gap-3">
           <Image src={swim.img} alt={swim.label} width={48} height={48} className="w-12 h-12 opacity-60" />
